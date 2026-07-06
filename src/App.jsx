@@ -649,7 +649,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#4C5C4A] text-[#F5F5F0]" style={{ fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif' }}>
+    <div className="min-h-screen bg-[#4C5C4A] text-[#F5F5F0]" style={{ fontFamily: '"Montserrat", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' }}>
       {/* Header */}
       <header className="sticky top-0 z-30 bg-[#3F4D3E]/95 backdrop-blur border-b border-[#3D4A3B]">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between gap-4">
@@ -1111,6 +1111,112 @@ function isInRefurbWorkflow(e) {
   return false;
 }
 
+// ================ ITEM JOURNEY ================
+// Every machine's life follows: Arrived at HQ -> (optional) Refurb -> either
+// Direct Sale or Keeping at a gym -> outcome. Derived entirely from the item's
+// current status/destination/refurbStage — no extra history data needed.
+
+function computeJourney(item) {
+  const statusIdx = STATUSES.indexOf(item.status);
+  const stateFor = (targetStatus) => {
+    const targetIdx = STATUSES.indexOf(targetStatus);
+    if (statusIdx > targetIdx) return 'done';
+    if (statusIdx === targetIdx) return 'current';
+    return 'upcoming';
+  };
+
+  const nodes = [];
+
+  nodes.push({
+    id: 'arrived',
+    label: 'Arrived at HQ',
+    icon: 'PackageOpen',
+    state: item.status === 'Incoming' ? 'current' : 'done',
+    date: item.arrivalDate,
+    dateLabel: item.status === 'Incoming' ? 'ETA' : 'Arrived'
+  });
+
+  const wentThroughRefurb = !!(item.refurbisher || item.refurbStage || item.status === 'In Refurb');
+  if (wentThroughRefurb) {
+    nodes.push({
+      id: 'refurb',
+      label: 'Refurbishment',
+      icon: 'Wrench',
+      state: stateFor('In Refurb'),
+      meta: item.refurbisher,
+      date: item.status === 'In Refurb' ? item.returnDate : null,
+      dateLabel: 'Due back'
+    });
+  }
+
+  if (item.destination === 'For Sale') {
+    nodes.push({ id: 'for-sale', label: 'Direct Sale', icon: 'ShoppingCart', state: stateFor('Listed for Sale') });
+    nodes.push({ id: 'sold', label: 'Sold', icon: 'Check', state: item.status === 'Sold' ? 'current' : 'upcoming' });
+  } else if (!item.destination || item.destination === 'Undecided') {
+    nodes.push({ id: 'undecided', label: 'Awaiting Decision', icon: 'Clock', state: 'current' });
+  } else {
+    nodes.push({ id: 'ready', label: 'Ready to Deploy', icon: 'PackageCheck', state: stateFor('Ready to Deploy') });
+    nodes.push({ id: 'in-use', label: `In Use — ${item.destination}`, icon: 'Building2', state: item.status === 'In Use' ? 'current' : 'upcoming' });
+  }
+
+  return nodes;
+}
+
+const JOURNEY_ICONS = { PackageOpen, Wrench, ShoppingCart, Check, PackageCheck, Building2, Clock };
+
+function JourneyDot({ state, icon }) {
+  const Icon = JOURNEY_ICONS[icon];
+  const cls = state === 'done'
+    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+    : state === 'current'
+    ? 'bg-amber-500/20 border-amber-400 text-amber-300 ring-4 ring-amber-400/15'
+    : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#7A867A]';
+  return (
+    <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${cls}`}>
+      <Icon size={14} />
+    </div>
+  );
+}
+
+function ItemJourney({ item }) {
+  const nodes = useMemo(() => computeJourney(item), [item]);
+
+  return (
+    <Section title="Journey">
+      <div>
+        {nodes.map((node, idx) => {
+          const isLast = idx === nodes.length - 1;
+          const labelColor = node.state === 'current' ? 'text-amber-300' : node.state === 'done' ? 'text-[#EAEEE5]' : 'text-[#7A867A]';
+          return (
+            <div key={node.id} className="flex gap-3">
+              <div className="flex flex-col items-center">
+                <JourneyDot state={node.state} icon={node.icon} />
+                {!isLast && <div className={`w-px flex-1 min-h-[20px] ${node.state === 'done' ? 'bg-emerald-500/40' : 'bg-[#3D4A3B]'}`} />}
+              </div>
+              <div className={isLast ? 'pb-1' : 'pb-5'}>
+                <div className={`text-sm font-medium pt-1 ${labelColor}`}>{node.label}</div>
+                {(node.date || node.meta) && (
+                  <div className="text-xs text-[#96A093] mt-0.5">
+                    {node.meta}{node.meta && node.date ? ' · ' : ''}{node.date ? `${node.dateLabel}: ${fmtDate(node.date)}` : ''}
+                  </div>
+                )}
+                {node.id === 'refurb' && node.state === 'current' && (
+                  <div className="flex items-center gap-1 mt-2 w-48">
+                    {REFURB_STAGES.map(stage => {
+                      const passed = REFURB_STAGES.indexOf(stage) <= REFURB_STAGES.indexOf(item.refurbStage);
+                      return <div key={stage} title={stage} className={`flex-1 h-1.5 rounded-full ${passed ? 'bg-orange-400' : 'bg-[#3D4A3B]'}`} />;
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
 function RefurbTab({ equipment, onSelect }) {
   const [groupBy, setGroupBy] = useState('stage');
 
@@ -1514,6 +1620,8 @@ function ItemModal({ item, allItems, onClose, onSave, onDelete }) {
             </button>
           )}
         </div>
+
+        {!isNew && <ItemJourney item={form} />}
 
         {/* Basic fields */}
         <Section title="Basics">
