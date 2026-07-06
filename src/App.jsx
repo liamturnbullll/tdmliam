@@ -70,7 +70,7 @@ const STATUS_COLORS = {
 const K = {
   EQUIP: 'equip:v1',
   SALES: 'sales:v1',
-  VANRUNS: 'vanruns:v1',
+  VANRUNS: 'vanruns:v2',
   IMG: (id) => `img:v1:${id}`,
   SEEDED: 'seeded:v1'
 };
@@ -305,58 +305,32 @@ const SEED_SALES = [
 ].map(seedSale);
 
 // ---------- SEED VAN RUNS ----------
+// Sourced from the team's live Notion "Van Runs / Jobs" database (WeBuyAnyKit
+// space). Job/People/Equipment/Notes mirror that schema directly rather than
+// a pickup/dropoff model, since that's not how the team actually tracks runs.
+
+const PEOPLE = ['Layton', 'Callum', 'Daisy', 'Liam', 'Cam', 'Tim', 'Sarah', 'Elena', 'Elle', 'Gunner', 'Mitch', 'Bailey'];
 
 const seedVanRun = (o) => ({
-  id: o.id, date: o.date, driver: o.driver || 'TBD',
-  stops: o.stops || [], notes: o.notes || '',
+  id: o.id, job: o.job, date: o.date,
+  people: o.people || [], equipment: o.equipment || '', notes: o.notes || '',
   status: o.status || 'scheduled',
   addedAt: Date.now(), updatedAt: Date.now()
 });
 
 const SEED_VAN_RUNS = [
-  {
-    id: 'van-2026-07-07-nytram',
-    date: '2026-07-07',
-    driver: 'TBD',
-    status: 'scheduled',
-    stops: [
-      { type: 'pickup', location: 'At Pauls', itemIds: ['bodymasters-321-lateral', 'nebula-vertical-lp', 'naut-1stgen-tri-ext'], notes: 'Collect from Paul' }
-    ],
-    notes: '7th July run — Paul collection'
-  },
-  {
-    id: 'van-2026-07-10-nytram-return',
-    date: '2026-07-10',
-    driver: 'TBD',
-    status: 'scheduled',
-    stops: [
-      { type: 'pickup', location: 'At Nytram', itemIds: ['naut-2st-shoulder-press', 'flex-thighsolator', 'naut-super-pullover-ii', 'hoist-rocit-cable-curl'], notes: 'Nytram returns' },
-      { type: 'dropoff', location: 'At Craigs', itemIds: ['bodymasters-321-lateral'], notes: 'Drop with Craig' }
-    ],
-    notes: 'Nytram return + Craig dropoff'
-  },
-  {
-    id: 'van-2026-07-17-craigs-pauls',
-    date: '2026-07-17',
-    driver: 'TBD',
-    status: 'scheduled',
-    stops: [
-      { type: 'pickup', location: 'At Craigs', itemIds: ['flex-deltoid-fly', 'arsenal-standing-lateral', 'paramount-fw500-tri-ext', 'flex-dip-machine'], notes: 'Craig returns' },
-      { type: 'dropoff', location: 'At Pauls', itemIds: ['naut-1stgen-tri-ext'], notes: 'Drop with Paul' }
-    ],
-    notes: 'Craig collections + Paul dropoffs'
-  },
-  {
-    id: 'van-2026-07-24-multi',
-    date: '2026-07-24',
-    driver: 'TBD',
-    status: 'scheduled',
-    stops: [
-      { type: 'pickup', location: 'At Pauls', itemIds: ['bodymasters-321-lateral', 'nebula-vertical-lp', 'cybex-v1-smith', 'naut-1stgen-tri-ext'], notes: 'Paul returns' }
-    ],
-    notes: '24th July Paul multi-collection'
-  }
-].map(seedVanRun);
+  { job: 'JP Kit Collection', date: '2026-07-03', people: ['Callum', 'Bailey'], equipment: 'Flex Adductor\nIcarian Incline Bench', notes: 'Latest arrival 16:00' },
+  { job: 'Shoulder Press Delivery', date: '2026-07-03', people: ['Callum', 'Bailey'], equipment: 'Life Fitness Shoulder Press', notes: 'Delivery by mid-morning in Dorset' },
+  { job: 'WBAK Runs', date: '2026-07-06', people: ['Daisy', 'Elle'], equipment: 'Pallets from TDM Gym to upstairs at WBAK\nSpare Life crossover to WBAK\n2x Precor treadmills to WBAK' },
+  { job: 'Fix Aj’s 2ST Ab Crunch', date: '2026-07-06', people: ['Layton', 'Bailey'], equipment: '2ST ab crunch' },
+  { job: 'Paul Kit Collection', date: '2026-07-07', people: ['Layton', 'Mitch'], equipment: 'Nebula VLP\nNebula Leg Press boxes\nBodymasters lateral\nNautilus leverage chest press' },
+  { job: 'Gym Unity Day', date: '2026-07-08', people: ['Daisy', 'Elle'], equipment: 'Nitro swaps & maintenance', notes: 'All in task list' },
+  { job: 'JP Kit Collection', date: '2026-07-09', people: ['Daisy', 'Bailey'], equipment: 'Paramount pec dec\nBodymasters super leg ex' },
+  { job: 'Nytram Kit Collection', date: '2026-07-10', people: ['Layton', 'Elena'], equipment: 'TAKE ALL OF THE PADS FOR MIGUEL\nNautilus Super Pullover II\nHoist Roc It Bicep Curl\nNautilus 2ST Vertical Chest\nFlex Thighsolator' },
+  { job: 'Craig Kit Collection', date: '2026-07-10', people: ['Bailey', 'Mitch'], equipment: '- Deliver Bodymasters lateral\n- Deliver Nebula VLP\n* Collect Supercat\n* Collect Gen 1 bicep\n* Collect Gen 1 fly\n* Collect SS bench\n* Collect Cybex lateral\n* Collect scales' },
+  { job: 'Craig Kit Collection', date: '2026-07-20', people: ['Layton', 'Bailey'], equipment: '- Deliver V1 Cybex smith\n- Deliver Gen 1 tricep\n- Collect Flex deltoid fly\n- Collect Flex dip\n- Collect Arsenal lateral\n- Collect Paramount triceps' },
+  { job: 'Craig Kit Collection', date: '2026-07-24', people: ['Daisy', 'Mitch'], equipment: '- Deliver Flex leverage row\n- Collect Bodymasters lateral\n- Collect Nebula VLP\n- Collect V1 Cybex smith\n- Collect Gen 1 tricep' }
+].map(o => seedVanRun({ ...o, id: mkId(`van-${o.job}-${o.date}`) }));
 
 // ---------- STORAGE HELPERS ----------
 
@@ -538,9 +512,13 @@ export default function App() {
     ]);
     let eq = e, sl = s, vr = v;
     if (!seeded) {
-      eq = SEED_EQUIPMENT; sl = SEED_SALES; vr = SEED_VAN_RUNS;
-      await saveKey(K.EQUIP, eq); await saveKey(K.SALES, sl); await saveKey(K.VANRUNS, vr);
+      eq = SEED_EQUIPMENT; sl = SEED_SALES;
+      await saveKey(K.EQUIP, eq); await saveKey(K.SALES, sl);
       await saveKey(K.SEEDED, true);
+    }
+    if (vr.length === 0) {
+      vr = SEED_VAN_RUNS;
+      await saveKey(K.VANRUNS, vr);
     }
     setEquipment(eq); setSales(sl); setVanRuns(vr); setLoaded(true);
   }
@@ -719,7 +697,7 @@ export default function App() {
           <RefurbTab equipment={equipment} onSelect={setSelectedItem} />
         )}
         {tab === 'van' && (
-          <VanTab vanRuns={vanRuns} equipment={equipment}
+          <VanTab vanRuns={vanRuns}
             onSelect={setSelectedRun} onAdd={() => setShowAddRun(true)} />
         )}
         {tab === 'sales' && (
@@ -736,7 +714,7 @@ export default function App() {
           onSave={upsertItem} onDelete={deleteItem} />
       )}
       {selectedRun && (
-        <VanRunModal run={selectedRun} equipment={equipment}
+        <VanRunModal run={selectedRun}
           onClose={() => setSelectedRun(null)}
           onSave={upsertRun} onDelete={deleteRun} />
       )}
@@ -758,7 +736,7 @@ export default function App() {
           onDelete={() => {}} />
       )}
       {showAddRun && (
-        <VanRunModal run={null} equipment={equipment}
+        <VanRunModal run={null}
           onClose={() => setShowAddRun(false)}
           onSave={(x) => { upsertRun(x); setShowAddRun(false); }}
           onDelete={() => {}} />
@@ -896,19 +874,15 @@ function OverviewTab({ equipment, sales, vanRuns, setTab, onSelectItem, onSelect
             <div className="text-sm text-[#96A093] py-4 text-center">No van runs scheduled</div>
           ) : (
             <div className="space-y-1">
-              {stats.upcoming.slice(0, 5).map(run => {
-                const totalItems = run.stops.reduce((n, s) => n + (s.itemIds?.length || 0), 0);
-                return (
-                  <button key={run.id} onClick={() => onSelectRun(run)}
-                    className="w-full text-left flex items-center justify-between p-2.5 rounded-md hover:bg-[#5D6E5C]/50 transition">
-                    <div className="min-w-0">
-                      <div className="text-sm text-[#EAEEE5] truncate">{fmtDate(run.date)}</div>
-                      <div className="text-xs text-[#96A093] truncate">{run.notes || `${run.stops.length} stop${run.stops.length > 1 ? 's' : ''}`}</div>
-                    </div>
-                    <div className="text-xs text-[#B8C0B1] font-mono whitespace-nowrap">{totalItems} item{totalItems !== 1 ? 's' : ''}</div>
-                  </button>
-                );
-              })}
+              {stats.upcoming.slice(0, 5).map(run => (
+                <button key={run.id} onClick={() => onSelectRun(run)}
+                  className="w-full text-left flex items-center justify-between p-2.5 rounded-md hover:bg-[#5D6E5C]/50 transition">
+                  <div className="min-w-0">
+                    <div className="text-sm text-[#EAEEE5] truncate">{run.job}</div>
+                    <div className="text-xs text-[#96A093] truncate">{fmtDate(run.date)}{run.people.length ? `  ·  ${run.people.join(', ')}` : ''}</div>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
         </Card>
@@ -1336,15 +1310,9 @@ function RefurbTab({ equipment, onSelect }) {
 
 // ================ VAN SCHEDULE ================
 
-function VanTab({ vanRuns, equipment, onSelect, onAdd }) {
+function VanTab({ vanRuns, onSelect, onAdd }) {
   const sortedRuns = useMemo(() =>
     [...vanRuns].sort((a, b) => new Date(a.date) - new Date(b.date)), [vanRuns]);
-
-  const itemMap = useMemo(() => {
-    const m = {};
-    equipment.forEach(e => m[e.id] = e);
-    return m;
-  }, [equipment]);
 
   const now = new Date(); now.setHours(0,0,0,0);
 
@@ -1352,11 +1320,11 @@ function VanTab({ vanRuns, equipment, onSelect, onAdd }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-lg font-semibold">Luton Van Schedule</div>
-          <div className="text-xs text-[#96A093] mt-0.5">{sortedRuns.length} runs · logistics for refurb transport</div>
+          <div className="text-lg font-semibold">Van Schedule</div>
+          <div className="text-xs text-[#96A093] mt-0.5">{sortedRuns.length} jobs · synced from Notion</div>
         </div>
         <button onClick={onAdd} className="bg-amber-500 hover:bg-amber-400 text-[#2A362A] text-sm font-medium px-3 py-2.5 rounded-lg flex items-center gap-1.5">
-          <Plus size={14} /> Schedule Run
+          <Plus size={14} /> Add Job
         </button>
       </div>
 
@@ -1370,40 +1338,33 @@ function VanTab({ vanRuns, equipment, onSelect, onAdd }) {
           {sortedRuns.map(run => {
             const dt = new Date(run.date);
             const isPast = dt < now;
-            const totalItems = run.stops.reduce((n, s) => n + (s.itemIds?.length || 0), 0);
             return (
               <div key={run.id} onClick={() => onSelect(run)}
                 className={`bg-[#3F4D3E] border rounded-xl p-4 cursor-pointer hover:border-[#8FA087] transition ${isPast ? 'border-[#3D4A3B]/50 opacity-60' : 'border-[#3D4A3B]'}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-[#4C5C4A] border border-[#3D4A3B] flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-[#4C5C4A] border border-[#3D4A3B] flex flex-col items-center justify-center shrink-0">
                       <div className="text-[10px] uppercase text-[#96A093]">{dt.toLocaleDateString('en-GB', { month: 'short' })}</div>
                       <div className="text-lg font-semibold leading-tight">{dt.getDate()}</div>
                     </div>
                     <div>
-                      <div className="font-medium text-[#F5F5F0]">{dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-                      <div className="text-xs text-[#96A093] mt-0.5">{run.notes || `${run.stops.length} stop${run.stops.length !== 1 ? 's' : ''}  ·  ${totalItems} item${totalItems !== 1 ? 's' : ''}`}</div>
+                      <div className="font-medium text-[#F5F5F0]">{run.job}</div>
+                      <div className="text-xs text-[#96A093] mt-0.5">{dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
                     </div>
                   </div>
-                  <div className="text-xs text-[#96A093]">Driver: {run.driver}</div>
+                  {run.people.length > 0 && (
+                    <div className="flex flex-wrap gap-1 justify-end max-w-[40%]">
+                      {run.people.map(p => (
+                        <span key={p} className="text-[10px] px-2 py-0.5 rounded-full bg-[#4C5C4A] border border-[#3D4A3B] text-[#DBE0D6] whitespace-nowrap">{p}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  {run.stops.map((stop, idx) => (
-                    <div key={idx} className="flex items-start gap-3 pl-3 border-l border-[#3D4A3B]">
-                      <div className={`text-[10px] uppercase px-2 py-0.5 rounded-full mt-0.5 ${stop.type === 'pickup' ? 'bg-cyan-500/15 text-cyan-300' : 'bg-orange-500/15 text-orange-300'}`}>
-                        {stop.type}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[#EAEEE5]">{stop.location}</div>
-                        <div className="text-xs text-[#96A093] mt-0.5">
-                          {stop.itemIds.map(id => itemMap[id]?.name).filter(Boolean).join(' · ') || 'No items linked'}
-                        </div>
-                        {stop.notes && <div className="text-xs text-[#7A867A] mt-1 italic">{stop.notes}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {run.equipment && (
+                  <div className="text-xs text-[#B8C0B1] whitespace-pre-line pl-3 border-l border-[#3D4A3B]">{run.equipment}</div>
+                )}
+                {run.notes && <div className="text-xs text-[#7A867A] mt-2 italic">{run.notes}</div>}
               </div>
             );
           })}
@@ -1841,131 +1802,66 @@ function SaleModal({ sale, onClose, onSave, onDelete }) {
 
 // ================ VAN RUN MODAL ================
 
-function VanRunModal({ run, equipment, onClose, onSave, onDelete }) {
+function VanRunModal({ run, onClose, onSave, onDelete }) {
   const isNew = !run;
   const [form, setForm] = useState(run || {
-    id: `van-${Date.now()}`, date: '', driver: 'TBD',
-    stops: [], notes: '', status: 'scheduled'
+    id: `van-${Date.now()}`, job: '', date: '',
+    people: [], equipment: '', notes: '', status: 'scheduled'
   });
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const updateStop = (idx, k, v) => setForm(f => ({
-    ...f, stops: f.stops.map((s, i) => i === idx ? { ...s, [k]: v } : s)
-  }));
-  const addStop = () => setForm(f => ({ ...f, stops: [...f.stops, { type: 'pickup', location: 'WBAK HQ', itemIds: [], notes: '' }] }));
-  const removeStop = (idx) => setForm(f => ({ ...f, stops: f.stops.filter((_, i) => i !== idx) }));
+  const togglePerson = (p) => update('people', form.people.includes(p) ? form.people.filter(x => x !== p) : [...form.people, p]);
 
   const handleSave = () => {
-    if (!form.date) return alert('Date required');
+    if (!form.job || !form.date) return alert('Job and date are required');
     onSave(form); onClose();
   };
 
   return (
-    <Modal onClose={onClose} title={isNew ? 'Schedule Van Run' : fmtDate(form.date)} width="max-w-3xl">
+    <Modal onClose={onClose} title={isNew ? 'Add Job' : form.job} width="max-w-2xl">
       <div className="space-y-4">
         <div className="flex items-center gap-2 justify-end">
           <button onClick={handleSave} className="bg-amber-500 hover:bg-amber-400 text-[#2A362A] text-sm font-medium px-3 py-1.5 rounded flex items-center gap-1.5">
             <Save size={13} /> Save
           </button>
           {!isNew && (
-            <button onClick={() => { if (confirm('Delete this van run?')) onDelete(run.id); }}
+            <button onClick={() => { if (confirm('Delete this job?')) onDelete(run.id); }}
               className="text-sm text-red-400 hover:text-red-300 px-3 py-1.5 flex items-center gap-1.5">
               <Trash2 size={13} /> Delete
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label="Job" value={form.job} onChange={v => update('job', v)} />
           <Field type="date" label="Date" value={form.date} onChange={v => update('date', v)} />
-          <Field label="Driver" value={form.driver} onChange={v => update('driver', v)} />
-          <Field type="select" label="Status" value={form.status} onChange={v => update('status', v)}
-            options={['scheduled', 'in-progress', 'completed', 'cancelled']} />
         </div>
-
-        <Field label="Run notes" value={form.notes} onChange={v => update('notes', v)} />
 
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-[#EAEEE5]">Stops</div>
-            <button onClick={addStop} className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1">
-              <Plus size={11} /> Add stop
-            </button>
-          </div>
-          <div className="space-y-2">
-            {form.stops.map((stop, idx) => (
-              <div key={idx} className="bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <select value={stop.type} onChange={e => updateStop(idx, 'type', e.target.value)}
-                    className="bg-[#3F4D3E] border border-[#3D4A3B] text-xs rounded px-2 py-1 focus:outline-none">
-                    <option value="pickup">Pickup</option>
-                    <option value="dropoff">Dropoff</option>
-                  </select>
-                  <select value={stop.location} onChange={e => updateStop(idx, 'location', e.target.value)}
-                    className="flex-1 bg-[#3F4D3E] border border-[#3D4A3B] text-xs rounded px-2 py-1 focus:outline-none">
-                    {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                  <button onClick={() => removeStop(idx)} className="text-[#96A093] hover:text-red-400">
-                    <X size={14} />
-                  </button>
-                </div>
-                <ItemPicker selected={stop.itemIds} onChange={v => updateStop(idx, 'itemIds', v)} equipment={equipment} />
-                <input value={stop.notes} onChange={e => updateStop(idx, 'notes', e.target.value)}
-                  placeholder="Stop notes…"
-                  className="w-full bg-[#3F4D3E] border border-[#3D4A3B] rounded px-2 py-1 text-xs focus:outline-none focus:border-amber-500/50" />
-              </div>
-            ))}
-            {form.stops.length === 0 && (
-              <div className="text-center py-4 text-xs text-[#96A093]">No stops yet. Add one above.</div>
-            )}
-          </div>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-function ItemPicker({ selected, onChange, equipment }) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState('');
-  const filtered = q ? equipment.filter(e => e.name.toLowerCase().includes(q.toLowerCase())) : equipment;
-  const selectedItems = equipment.filter(e => selected.includes(e.id));
-
-  return (
-    <div>
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        {selectedItems.length === 0 && <span className="text-xs text-[#7A867A]">No items linked</span>}
-        {selectedItems.map(item => (
-          <span key={item.id} className="inline-flex items-center gap-1 bg-[#3F4D3E] border border-[#3D4A3B] rounded-full px-2 py-0.5 text-xs">
-            {item.name}
-            <button onClick={() => onChange(selected.filter(x => x !== item.id))} className="text-[#96A093] hover:text-red-400">
-              <X size={10} />
-            </button>
-          </span>
-        ))}
-      </div>
-      <button onClick={() => setOpen(!open)} className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1">
-        <Plus size={11} /> Link item
-      </button>
-      {open && (
-        <div className="mt-2 bg-[#3F4D3E] border border-[#3D4A3B] rounded-lg p-2">
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search…" autoFocus
-            className="w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded px-2 py-1 text-xs mb-2 focus:outline-none focus:border-amber-500/50" />
-          <div className="max-h-40 overflow-y-auto space-y-0.5">
-            {filtered.slice(0, 50).map(item => {
-              const isSel = selected.includes(item.id);
+          <div className="text-[11px] text-[#96A093] mb-1.5">People</div>
+          <div className="flex flex-wrap gap-1.5">
+            {PEOPLE.map(p => {
+              const active = form.people.includes(p);
               return (
-                <button key={item.id} onClick={() => {
-                  onChange(isSel ? selected.filter(x => x !== item.id) : [...selected, item.id]);
-                }}
-                  className={`w-full text-left px-2 py-1 text-xs rounded transition ${isSel ? 'bg-amber-500/15 text-amber-300' : 'text-[#DBE0D6] hover:bg-[#5D6E5C]'}`}>
-                  {item.name}
+                <button key={p} onClick={() => togglePerson(p)}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition ${active ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#4C5C4A] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087]'}`}>
+                  {p}
                 </button>
               );
             })}
           </div>
         </div>
-      )}
-    </div>
+
+        <label className="block">
+          <div className="text-[11px] text-[#96A093] mb-1">Equipment</div>
+          <textarea value={form.equipment} onChange={e => update('equipment', e.target.value)}
+            className="w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-3 py-2 text-sm min-h-[100px] focus:outline-none focus:border-amber-500/50"
+            placeholder="One item per line…" />
+        </label>
+
+        <Field label="Notes" value={form.notes} onChange={v => update('notes', v)} />
+      </div>
+    </Modal>
   );
 }
 
