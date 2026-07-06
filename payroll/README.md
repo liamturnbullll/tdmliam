@@ -30,11 +30,13 @@ python -m payroll.main --dry-run                       # quotes + preview only, 
 python -m payroll.main --csv payroll.csv --run-id 2026-07-15
 ```
 
-`payroll.csv` columns: `name, wise_recipient_id, hourly_rate, hours, currency`
-(see `payroll.example.csv`). `wise_recipient_id` is the Wise recipient
-account ID the contractor is already registered as; `currency` is the payout
-currency and is cross-checked against what Wise has on file for that account
-— a mismatch aborts the whole run before anything is created.
+`payroll.csv` columns: `name, wise_recipient_id, hours_worked, actual_rate,
+deductions` (deductions optional, defaults to 0; see `payroll.example.csv`).
+This matches the confirmed Notion payroll formula: **net pay = hours_worked
+× actual_rate − deductions**. `wise_recipient_id` is the Wise recipient
+account ID the contractor is already registered as; the payout currency
+comes from whatever currency that Wise account is set up in — there's no
+separate currency column to keep in sync.
 
 Flow: validate every recipient → quote every row → print a preview table →
 **confirm** → create batch group → add transfers → complete (lock) the batch
@@ -59,9 +61,10 @@ mocked HTTP responses — no live or sandbox credentials required.
 
 ## Known limitations / open questions (carried over from planning)
 
-- **Source of hours is not yet wired up.** This reads a CSV; if hours end up
-  living in a Sheet/Airtable/HR tool, add a small export step ahead of this,
-  don't rebuild the payment logic.
+- **Source of hours is the Notion "Cautious Payroll" export**, manually
+  reviewed each cycle before it's trusted. `payroll-app` (separate repo,
+  `tdmliam-payroll`) is the front end that will turn that export into this
+  CSV — this script itself doesn't care where the CSV came from.
 - **Quote expiry isn't handled.** If `add_transfer` fails because a quote
   went stale between the preview and the batch step, delete that recipient's
   `quote_id`/`quote` keys from the run's JSON and rerun with the same

@@ -39,19 +39,21 @@ def parse_args() -> argparse.Namespace:
 
 
 def render_preview(rows: list[PayrollRow], run_log: RunLog, source_currency: str) -> str:
-    header = f"{'Name':<24}{'Recipient':<22}{'Hours':>8}{'Rate':>9}{'Local amt':>13} {'Ccy':<4}{'Source amt':>13}"
+    header = f"{'Name':<24}{'Recipient':<22}{'Hours':>8}{'Rate':>9}{'Ded':>8}{'Net pay':>13} {'Ccy':<4}{'Source amt':>13}"
     lines = [header, "-" * len(header)]
     total_source = Decimal("0")
     for row in rows:
-        quote = run_log.row_state(row.wise_recipient_id).get("quote", {})
+        state = run_log.row_state(row.wise_recipient_id)
+        quote = state.get("quote", {})
+        currency = state.get("currency", "")
         source_amount = Decimal(str(quote.get("sourceAmount", "0")))
         total_source += source_amount
         lines.append(
-            f"{row.name:<24}{row.wise_recipient_id:<22}{row.hours!s:>8}{row.hourly_rate!s:>9}"
-            f"{row.amount!s:>13} {row.currency:<4}{source_amount!s:>13}"
+            f"{row.name:<24}{row.wise_recipient_id:<22}{row.hours_worked!s:>8}{row.actual_rate!s:>9}"
+            f"{row.deductions!s:>8}{row.amount!s:>13} {currency:<4}{source_amount!s:>13}"
         )
     lines.append("-" * len(header))
-    lines.append(f"{'TOTAL':<66}{total_source!s:>13} {source_currency}")
+    lines.append(f"{'TOTAL':<71}{total_source!s:>13} {source_currency}")
     return "\n".join(lines)
 
 
@@ -82,11 +84,9 @@ def main() -> None:
             print(f"FATAL: could not look up recipient {row.wise_recipient_id} ({row.name}): {exc}")
             sys.exit(1)
 
-        if account.get("currency") != row.currency:
-            print(
-                f"FATAL: recipient mismatch for {row.name} ({row.wise_recipient_id}): "
-                f"payroll.csv says {row.currency}, Wise account is {account.get('currency')}"
-            )
+        target_currency = account.get("currency")
+        if not target_currency:
+            print(f"FATAL: recipient {row.name} ({row.wise_recipient_id}) has no currency on file with Wise")
             sys.exit(1)
 
         state = run_log.row_state(row.wise_recipient_id)
@@ -94,7 +94,7 @@ def main() -> None:
             try:
                 quote = client.create_quote(
                     source_currency=config.source_currency,
-                    target_currency=row.currency,
+                    target_currency=target_currency,
                     target_amount=float(row.amount),
                     target_account_id=row.wise_recipient_id,
                 )
@@ -105,7 +105,7 @@ def main() -> None:
                 row.wise_recipient_id,
                 name=row.name,
                 amount=str(row.amount),
-                currency=row.currency,
+                currency=target_currency,
                 quote_id=quote["id"],
                 quote=quote,
             )
