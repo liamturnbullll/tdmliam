@@ -3,7 +3,7 @@ import { useState } from 'react';
 // Lightweight client-side gate — blocks casual/search-engine access to the
 // public GitHub Pages URL. Not real security: credentials ship in the JS bundle.
 const USERNAME = 'admin';
-const PASSWORD = 'tdmgm1234';
+const PASSWORD = 'tdmgym1234';
 const AUTH_KEY = 'tdm-auth:v1';
 
 export default function AuthGate({ children }) {
