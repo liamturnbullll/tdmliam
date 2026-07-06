@@ -1,3 +1,13 @@
 node_modules
 dist
 .DS_Store
+
+# payroll automation — secrets and real financial data, never committed
+payroll/.env
+payroll/keys/*.pem
+payroll/payroll.csv
+payroll/runs/*.json
+__pycache__/
+*.pyc
+.pytest_cache/
+
