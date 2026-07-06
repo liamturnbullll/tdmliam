@@ -518,6 +518,17 @@ export default function App() {
   // Load on mount
   useEffect(() => { load(); }, []);
 
+  // Live sync — reflect changes made by other users/devices in real time.
+  useEffect(() => {
+    if (!window.storage.subscribe) return;
+    const unsubs = [
+      window.storage.subscribe(K.EQUIP, setEquipment),
+      window.storage.subscribe(K.SALES, setSales),
+      window.storage.subscribe(K.VANRUNS, setVanRuns)
+    ];
+    return () => unsubs.forEach(fn => fn());
+  }, []);
+
   async function load() {
     const [e, s, v, seeded] = await Promise.all([
       loadKey(K.EQUIP, []),

@@ -3,7 +3,7 @@ import '@fontsource/montserrat/400.css';
 import '@fontsource/montserrat/500.css';
 import '@fontsource/montserrat/600.css';
 import '@fontsource/montserrat/700.css';
-import { storage } from './storage.js';
+import { storage } from './supabaseStorage.js';
 import App from './App.jsx';
 import AuthGate from './AuthGate.jsx';
 import './index.css';
