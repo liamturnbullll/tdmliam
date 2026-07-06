@@ -949,20 +949,20 @@ function InventoryTab({
         </button>
       </div>
 
-      {/* Filter Chips */}
-      <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl p-3 space-y-2">
-        <FilterRow label="Location" options={LOCATIONS} selected={filterLocations} onChange={setFilterLocations} />
-        <FilterRow label="Body Part" options={CATEGORIES} selected={filterCategories} onChange={setFilterCategories} />
-        <FilterRow label="Brand" options={allBrands} selected={filterBrands} onChange={setFilterBrands} scrollable />
-        <FilterRow label="Status" options={STATUSES} selected={filterStatuses} onChange={setFilterStatuses} />
-        <FilterRow label="Going to" options={DESTINATIONS} selected={filterDestinations} onChange={setFilterDestinations} />
+      {/* Filter Dropdowns */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <FilterDropdown label="Location" options={LOCATIONS} selected={filterLocations} onChange={setFilterLocations} />
+        <FilterDropdown label="Body Part" options={CATEGORIES} selected={filterCategories} onChange={setFilterCategories} />
+        <FilterDropdown label="Brand" options={allBrands} selected={filterBrands} onChange={setFilterBrands} scrollable />
+        <FilterDropdown label="Status" options={STATUSES} selected={filterStatuses} onChange={setFilterStatuses} />
+        <FilterDropdown label="Going to" options={DESTINATIONS} selected={filterDestinations} onChange={setFilterDestinations} />
         {hasActiveFilters && (
-          <div className="flex items-center justify-between pt-1">
-            <div className="text-xs text-[#96A093]">{equipment.length} of {totalCount} items</div>
-            <button onClick={clearAll} className="text-xs text-[#B8C0B1] hover:text-amber-400 flex items-center gap-1">
-              <X size={11} /> Clear filters
-            </button>
-          </div>
+          <button onClick={clearAll} className="text-xs text-[#B8C0B1] hover:text-amber-400 flex items-center gap-1">
+            <X size={11} /> Clear filters
+          </button>
+        )}
+        {hasActiveFilters && (
+          <div className="text-xs text-[#96A093] ml-auto">{equipment.length} of {totalCount} items</div>
         )}
       </div>
 
@@ -983,24 +983,43 @@ function InventoryTab({
   );
 }
 
-function FilterRow({ label, options, selected, onChange, scrollable }) {
+function FilterDropdown({ label, options, selected, onChange, scrollable }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [open]);
+
   const toggle = (opt) => {
     onChange(selected.includes(opt) ? selected.filter(x => x !== opt) : [...selected, opt]);
   };
+
   return (
-    <div className="flex items-start gap-3">
-      <div className="text-[11px] uppercase tracking-wider text-[#96A093] w-16 shrink-0 pt-1.5">{label}</div>
-      <div className={`flex flex-wrap gap-1.5 flex-1 ${scrollable ? 'max-h-16 overflow-y-auto' : ''}`}>
-        {options.map(opt => {
-          const active = selected.includes(opt);
-          return (
-            <button key={opt} onClick={() => toggle(opt)}
-              className={`text-xs px-2.5 py-1 rounded-full border transition ${active ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#4C5C4A] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
-              {opt}
-            </button>
-          );
-        })}
-      </div>
+    <div className="relative" ref={ref}>
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition ${selected.length ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+        {label}{selected.length > 0 ? ` (${selected.length})` : ''}
+        <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1.5 w-60 bg-[#3F4D3E] border border-[#3D4A3B] rounded-lg p-2 shadow-xl">
+          <div className={`flex flex-wrap gap-1.5 ${scrollable ? 'max-h-48 overflow-y-auto' : ''}`}>
+            {options.map(opt => {
+              const active = selected.includes(opt);
+              return (
+                <button key={opt} onClick={() => toggle(opt)}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition ${active ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#4C5C4A] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
