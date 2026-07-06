@@ -104,7 +104,7 @@ const seedItem = (o) => ({
   updatedAt: Date.now()
 });
 
-const SEED_EQUIPMENT = [
+const SEED_EQUIPMENT_BASE = [
   // ===== WBAK REFURB PIPELINE — CHEST PRESSES =====
   { id: 'naut-2st-vert-chest', name: 'Nautilus 2ST Vertical Chest Press', brand: 'Nautilus', category: 'Chest', subcategory: 'Presses', cost: 1000, marketValue: 2750, seller: 'Manassas, VA', currentLocation: 'WBAK HQ', status: 'In Refurb', refurbStage: 'Landed', refurbisher: 'In-House (WBAK)', destination: 'For Sale' },
   { id: 'naut-xpload-incline', name: 'Nautilus Xpload Incline Press', brand: 'Nautilus', category: 'Chest', subcategory: 'Presses', cost: 5000, marketValue: 7000, seller: 'Greenville, SC', currentLocation: 'WBAK HQ', status: 'In Refurb', refurbStage: 'Landed', refurbisher: 'In-House (WBAK)', destination: 'For Sale' },
@@ -276,7 +276,48 @@ const SEED_EQUIPMENT = [
   { id: 'unity-lich-cybex-v1-squat', name: 'Cybex V1 Squat Press (Unity)', brand: 'Cybex', category: 'Legs', subcategory: 'Compounds', cost: 3700, marketValue: 6375, currentLocation: 'Unity Lichfield', status: 'In Use', destination: 'Unity Lichfield', arrivalDate: '2026-02-23' },
   { id: 'unity-burton-flex-incline', name: 'Flex Fitness Incline Press', brand: 'Flex Fitness', category: 'Chest', subcategory: 'Presses', cost: 3000, currentLocation: 'Unity Burton', status: 'In Use', destination: 'Unity Burton' },
   { id: 'unity-tam-booty-back-ext', name: 'Booty Builder Back Extension (Tam)', brand: 'Booty Builder', category: 'Back', subcategory: 'Back Ext', cost: 3353, marketValue: 4000, currentLocation: 'Unity Tamworth', status: 'In Use', destination: 'Unity Tamworth', arrivalDate: '2026-04-01' },
-  { id: 'unity-burton-booty-v8', name: 'Booty Builder V8 (Burton)', brand: 'Booty Builder', category: 'Legs', subcategory: 'Glutes / Hips', cost: 3698, marketValue: 5000, currentLocation: 'Unity Burton', status: 'In Use', destination: 'Unity Burton', arrivalDate: '2026-04-01' }
+  { id: 'unity-burton-booty-v8', name: 'Booty Builder V8 (Burton)', brand: 'Booty Builder', category: 'Legs', subcategory: 'Glutes / Hips', cost: 3698, marketValue: 5000, currentLocation: 'Unity Burton', status: 'In Use', destination: 'Unity Burton', arrivalDate: '2026-04-01' },
+
+  // ===== TDM GYM JULY 2026 AUDIT — NEW ITEMS (no prior record) =====
+  { id: 'medx-leg-ext', name: 'MedX Leg Extension', brand: 'MedX', category: 'Legs', subcategory: 'Leg Extensions', cost: 0, currentLocation: 'WBAK HQ', status: 'In Refurb', refurbStage: 'Landed', refurbisher: 'In-House (WBAK)', destination: 'TDM Gym', notes: 'Remake all stickers in theme' },
+  { id: 'cybex-galileo-leg-ext', name: 'Cybex Galileo Leg Extension', brand: 'Cybex', category: 'Legs', subcategory: 'Leg Extensions', cost: 0, currentLocation: 'WBAK HQ', status: 'In Refurb', refurbStage: 'Landed', refurbisher: 'In-House (WBAK)', destination: 'TDM Gym', notes: 'Cybex sticker on stack casing & remake info sticker' },
+  { id: 'ss-thor-cage-3', name: 'Strength Shop Thor Cage 3', brand: 'Strength Shop', category: 'Powerlifting', subcategory: 'Racks', cost: 0, marketValue: 250, seller: 'Glasgow', currentLocation: 'WBAK HQ', status: 'Ready to Deploy', destination: 'TDM Gym' },
+  { id: 'ss-deadlift-platform-2', name: 'Strength Shop Deadlift Platform', brand: 'Strength Shop', category: 'Powerlifting', subcategory: 'Platforms', cost: 400, marketValue: 250, seller: 'Glasgow', currentLocation: 'TDM Gym', status: 'Ready to Deploy', destination: 'TDM Gym' },
+  { id: 'cybex-treadmill-1', name: 'Cybex Treadmill', brand: 'Cybex', category: 'Cardio', subcategory: 'Treadmill', cost: 850, marketValue: 1000, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' },
+  { id: 'cybex-treadmill-2', name: 'Cybex Treadmill', brand: 'Cybex', category: 'Cardio', subcategory: 'Treadmill', cost: 850, marketValue: 1000, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' },
+  { id: 'cybex-treadmill-3', name: 'Cybex Treadmill', brand: 'Cybex', category: 'Cardio', subcategory: 'Treadmill', cost: 850, marketValue: 1000, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' },
+  { id: 'cybex-treadmill-4', name: 'Cybex Treadmill', brand: 'Cybex', category: 'Cardio', subcategory: 'Treadmill', cost: 850, marketValue: 1000, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' },
+  { id: 'matrix-plate-trees', name: 'Matrix Plate Trees', brand: 'Matrix', category: 'Accessories', subcategory: 'Storage', cost: 80, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym', notes: 'Qty: 3' },
+  { id: 'icarian-ghr', name: 'Icarian GHR', brand: 'Icarian', category: 'Legs', subcategory: 'Glutes / Hips', cost: 250, marketValue: 500, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' },
+  { id: 'jordan-ghr', name: 'Jordan GHR', brand: 'Jordan', category: 'Legs', subcategory: 'Glutes / Hips', cost: 250, marketValue: 250, currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' },
+  { id: 'ss-ghr', name: 'Strength Shop GHR', brand: 'Strength Shop', category: 'Legs', subcategory: 'Glutes / Hips', cost: 467, marketValue: 467, seller: 'Glasgow', currentLocation: 'TDM Gym', status: 'In Use', destination: 'TDM Gym' }
+];
+
+// Items whose only existing record is destined elsewhere (For Sale / a Unity
+// gym / Undecided) but which the July 2026 TDM Gym equipment audit also
+// lists — per that audit, these are a second physical unit destined for
+// TDM Gym, not the same piece, so we clone rather than reassign.
+const TDM_SECOND_INSTANCE_IDS = [
+  'naut-2st-vert-chest', 'naut-xpload-incline', 'magnum-biangular-upper-chest',
+  'naut-nitro-pec-fly-rear-delt', 'bodymasters-pec-fly-rear-delt',
+  'naut-2st-shoulder-press', 'flex-deltoid-raise', 'strive-lateral-raise', 'lf-pro1-lateral',
+  'precor-pulldown', 'hd-xpload-pulldown', 'paramount-rotary-pulldown', 'hoist-star-pulldown', 'cybex-eagle-incline-pull',
+  'cybex-classic-row', 'panatta-fantastic-row', 'hd-magnum-biangular-row', 'hs-iso-row',
+  'naut-nitro-back-ext', 'naut-nitro-pullover', 'hs-pullover',
+  'cybex-v1-leg-press', 'cybex-v1-squat-press', 'cybex-v1-hack', 'atlantis-precision-lp', 'icarian-lying-lp',
+  'strive-smart-prone-lc', 'hoist-rocit-lc', 'atlantis-precision-lying-lc', 'atlantis-precision-seated-lc',
+  'cybex-vr-leg-ext', 'strive-smart-leg-ext',
+  'naut-nitro-ab-ad', 'flex-classic-adductor', 'naut-glute-drive', 'cybex-vr2-rotary-calf', 'bodymasters-standing-calf',
+  'bodymasters-overhead-tri', 'naut-nitro-sa-tri',
+  'naut-nitro-sa-bicep', 'hoist-rocit-cable-curl', 'flex-bisolator', 'strive-pl-preacher', 'bodymasters-selectorised-bicep',
+  'lf-cable-crossover', 'lf-mj8-jungle', 'cybex-bravo', 'cybex-v2-smith', 'naut-smith', 'naut-nitro-ab-crunch'
+];
+
+const SEED_EQUIPMENT = [
+  ...SEED_EQUIPMENT_BASE,
+  ...SEED_EQUIPMENT_BASE
+    .filter(i => TDM_SECOND_INSTANCE_IDS.includes(i.id))
+    .map(i => ({ ...i, id: i.id + '-tdm2', destination: 'TDM Gym' }))
 ].map(seedItem);
 
 // ---------- SEED SALES ----------
