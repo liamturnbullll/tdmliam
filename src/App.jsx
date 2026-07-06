@@ -1086,7 +1086,7 @@ function ItemCard({ item, onClick }) {
           <MapPin size={11} className="shrink-0" />
           <span className="truncate">{item.currentLocation}</span>
         </div>
-        {item.destination && item.currentLocation !== item.destination && (
+        {item.status === 'Incoming' && item.destination && (
           <div className="flex items-center gap-1 text-[#96A093] shrink-0">
             <ArrowRight size={11} />
             <span className="truncate">{item.destination}</span>
@@ -1124,7 +1124,7 @@ function ItemTable({ items, onSelect }) {
                   <td className="px-3 py-2 text-[#DBE0D6]">{item.brand}</td>
                   <td className="px-3 py-2 text-[#B8C0B1] text-xs">{item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}</td>
                   <td className="px-3 py-2 text-[#DBE0D6]">{item.currentLocation}</td>
-                  <td className="px-3 py-2 text-[#B8C0B1]">{item.destination}</td>
+                  <td className="px-3 py-2 text-[#B8C0B1]">{item.status === 'Incoming' ? item.destination : <span className="text-[#7A867A]">—</span>}</td>
                   <td className="px-3 py-2"><span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${stat.bg} ${stat.text}`}>{item.status}</span></td>
                   <td className="px-3 py-2">{item.refurbStage ? <RefurbStageBadge stage={item.refurbStage} /> : <span className="text-[#7A867A]">—</span>}</td>
                   <td className="px-3 py-2 text-right font-mono text-[#DBE0D6]">{gbp(item.cost)}</td>
