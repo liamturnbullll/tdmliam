@@ -41,6 +41,8 @@ const DESTINATIONS = [
   'For Sale', 'Undecided'
 ];
 
+const GYM_DESTINATIONS = DESTINATIONS.filter(d => d !== 'For Sale' && d !== 'Undecided');
+
 const STATUSES = [
   'Incoming', 'At HQ', 'In Refurb', 'Ready to Deploy', 'In Use', 'Listed for Sale', 'Sold'
 ];
@@ -72,7 +74,8 @@ const K = {
   SALES: 'sales:v1',
   VANRUNS: 'vanruns:v2',
   IMG: (id) => `img:v1:${id}`,
-  SEEDED: 'seeded:v1'
+  SEEDED: 'seeded:v1',
+  MIGRATED_REFURB_V1: 'migrated:refurb-v1'
 };
 
 // ---------- SEED DATA ----------
@@ -399,6 +402,25 @@ async function mergeSeed(current, seed) {
   return additions.length ? [...current, ...additions] : current;
 }
 
+// One-time correction: there is no in-house refurb (only Craigs/Nytram/JP), and
+// Paul is a supplier (relevant to incoming machines only), not a refurbisher.
+// Anything already landed at its destination gym should use that gym as its
+// location rather than still reading WBAK HQ / At Pauls.
+function migrateRefurbModelItem(item) {
+  let next = item;
+  if (next.refurbisher === 'In-House (WBAK)' || next.refurbisher === 'Pauls') {
+    next = { ...next, refurbisher: '' };
+  }
+  if (next.currentLocation === 'At Pauls') {
+    const landed = GYM_DESTINATIONS.includes(next.destination) ? next.destination : 'WBAK HQ';
+    next = { ...next, currentLocation: landed, refurbStage: next.refurbStage === 'Refurb' ? 'Complete' : next.refurbStage };
+  }
+  if (next.currentLocation === 'WBAK HQ' && next.status === 'In Use' && GYM_DESTINATIONS.includes(next.destination)) {
+    next = { ...next, currentLocation: next.destination };
+  }
+  return next === item ? item : { ...next, updatedAt: Date.now() };
+}
+
 // ---------- IMAGE HELPERS ----------
 
 async function resizeImage(file, maxDim = 1200, quality = 0.8) {
@@ -545,11 +567,12 @@ export default function App() {
   }, []);
 
   async function load() {
-    const [e, s, v, seeded] = await Promise.all([
+    const [e, s, v, seeded, migratedRefurb] = await Promise.all([
       loadKey(K.EQUIP, []),
       loadKey(K.SALES, []),
       loadKey(K.VANRUNS, []),
-      loadKey(K.SEEDED, false)
+      loadKey(K.SEEDED, false),
+      loadKey(K.MIGRATED_REFURB_V1, false)
     ]);
     let eq = e, sl = s, vr = v;
     if (!seeded) {
@@ -560,6 +583,19 @@ export default function App() {
     if (vr.length === 0) {
       vr = SEED_VAN_RUNS;
       await saveKey(K.VANRUNS, vr);
+    }
+    if (!migratedRefurb) {
+      let changed = 0;
+      const migratedEq = eq.map(item => {
+        const m = migrateRefurbModelItem(item);
+        if (m !== item) changed++;
+        return m;
+      });
+      if (changed > 0) {
+        eq = migratedEq;
+        await saveKey(K.EQUIP, eq);
+      }
+      await saveKey(K.MIGRATED_REFURB_V1, true);
     }
     setEquipment(eq); setSales(sl); setVanRuns(vr); setLoaded(true);
   }
