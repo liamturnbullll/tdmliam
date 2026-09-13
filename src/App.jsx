@@ -207,7 +207,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "nebula-45-proto", name: "Nebula 45 Degree Prototype", brand: "Nebula", category: "Legs", subcategory: "Compounds", tdmRef: "156", cost: 3000, marketValue: 7500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Oregon, OH" },
   { id: "nebula-defiant-35", name: "Nebula Defiant 35 Degree", brand: "Nebula", category: "Legs", subcategory: "Compounds", tdmRef: "358", cost: 4750, marketValue: 5500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Complete", seller: "Wrexham" },
   { id: "nebula-vertical-lp", name: "Nebula Vertical Leg Press", brand: "Nebula", category: "Legs", subcategory: "Compounds", tdmRef: "308", cost: 4500, marketValue: 6000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Complete", deliveryDate: "2026-07-10", returnDate: "2026-07-24", seller: "Caldwell, ID" },
-  { id: "magnum-hip-press", name: "Magnum Hip Press", brand: "Magnum", category: "Legs", subcategory: "Glutes / Hips", tdmRef: "281", cost: 1500, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Landed", seller: "Wrexham" },
+  { id: "magnum-hip-press", name: "Magnum Hip Press", brand: "Magnum", category: "Legs", subcategory: "Glutes / Hips", tdmRef: "275", cost: 1500, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Landed", seller: "Wrexham" },
   { id: "randy-coyle-swingsquat", name: "Randy Coyle Swingsquat", brand: "Randy Coyle", category: "Legs", subcategory: "Compounds", tdmRef: "360", cost: 7000, marketValue: 10000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Landed" },
   { id: "powernetics-supercat", name: "Powernetics Supercat Bear Squat", brand: "Powernetics", category: "Legs", subcategory: "Compounds", tdmRef: "273", cost: 2000, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", returnDate: "2026-07-10", seller: "Manchester, RI" },
   { id: "bodymasters-hack-squat", name: "Bodymasters Hack Squat", brand: "Bodymasters", category: "Legs", subcategory: "Compounds", tdmRef: "145", cost: 2950, marketValue: 4000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Landed", seller: "Caldwell, ID" },
@@ -714,7 +714,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "flex-bisolator-tdm2", name: "Flex Fitness Bisolator", brand: "Flex Fitness", category: "Arms", subcategory: "Biceps", tdmRef: "170", cost: 4000, marketValue: 10000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Tokyo" },
 
   // ===== TDM GYM SEPT 2026 FULL ASSET ROSTER — NEW ITEMS (no prior record) =====
-  { id: "tdm-gym-259", name: "Nautilus Leverage Chest Press", brand: "Nautilus", category: "Other", tdmRef: "259", cost: 2900, marketValue: 3200, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
+  { id: "tdm-gym-259", name: "Nautilus Leverage Chest Press", brand: "Nautilus", category: "Other", tdmRef: "254", cost: 2900, marketValue: 3200, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-383", name: "Nautilus Pec Fly", brand: "Nautilus", category: "Other", tdmRef: "383", cost: 2900, marketValue: 3250, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-267", name: "Cybex Eagle Kneeling Lateral", brand: "Cybex", category: "Other", tdmRef: "267", cost: 3000, marketValue: 4000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-374", name: "Bodymasters Pulldown", brand: "Bodymasters", category: "Other", tdmRef: "374", cost: 750, marketValue: 1500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
@@ -728,7 +728,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "tdm-gym-386", name: "Atlantis Hack Squat", brand: "Atlantis", category: "Other", tdmRef: "386", cost: 4000, marketValue: 7500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-397", name: "Star Trac Hamtractor", brand: "Star Trac", category: "Other", tdmRef: "397", cost: 4800, marketValue: 8000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-381", name: "MedX Leg Curl", brand: "MedX", category: "Other", tdmRef: "381", cost: 2000, marketValue: 3500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
-  { id: "tdm-gym-46", name: "Cybex 750C Bike", brand: "Cybex", category: "Other", tdmRef: "46", cost: 600, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
+  { id: "tdm-gym-46", name: "Cybex 750C Bike", brand: "Cybex", category: "Other", tdmRef: "296", cost: 600, marketValue: 1000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-401", name: "Matrix Stairmaster", brand: "Matrix", category: "Other", tdmRef: "401", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-402", name: "Matrix Stairmaster", brand: "Matrix", category: "Other", tdmRef: "402", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-192", name: "Life Fitness Dip Pull Up", brand: "Life Fitness", category: "Other", tdmRef: "192", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
@@ -857,10 +857,17 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity5-paramount-pl-flat-chest-press", name: "Paramount PL Flat Chest Press", brand: "Paramount", category: "Chest", subcategory: "Presses", cost: 0, marketValue: 2000, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ" },
   { id: "unity5-precor-shoulder-press", name: "Precor Shoulder Press", brand: "Precor", category: "Shoulders", subcategory: "Presses", cost: 0, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ" },
   { id: "unity5-cybex-eagle-leg-press", name: "Cybex Eagle Leg Press", brand: "Cybex", category: "Legs", subcategory: "Compounds", cost: 0, marketValue: 3000, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ" },
-  { id: "unity5-bodymasters-lying-leg-curl", name: "Bodymasters Lying Leg Curl", brand: "Bodymasters", category: "Legs", subcategory: "Leg Curls", cost: 0, marketValue: 2500, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ" },
+  { id: "unity5-bodymasters-lying-leg-curl", name: "Bodymasters Lying Leg Curl", brand: "Bodymasters", category: "Legs", subcategory: "Leg Curls", tdmRef: "369", cost: 1200, marketValue: 2500, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ" },
 
   // ===== Incoming Equipment log cross-check — genuine gap, never transcribed =====
   { id: "wbak-304", name: "Cybex VR2 Chest Press", brand: "Cybex", category: "Chest", subcategory: "Presses", tdmRef: "304", cost: 300, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", seller: "Jackie", notes: "From Incoming Equipment log (order 38) -- missing from the WBAK stock list transcription" },
+
+  // ===== Incoming Equipment log cross-check — TDM Gym gaps =====
+  { id: "wbak-126", name: "Magnum Biangular Chest", brand: "Magnum", category: "Chest", subcategory: "Presses", tdmRef: "126", cost: 1800, marketValue: 2000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", seller: "Paul", notes: "From Incoming Equipment log (order 3, ref 126). Also the WBAK Aug 2026 stock list line previously dropped as an unresolved Ref 151 conflict (that entry valued it at GBP2,200) -- it is this unit, not a duplicate of the TDM Gym Magnum Biangular Chest which correctly keeps Ref 151." },
+  { id: "tdm-gym-293", name: "Strength Shop Bow Bar", brand: "Strength Shop", category: "Powerlifting", subcategory: "Bars", tdmRef: "293", cost: 50, marketValue: 100, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Dan Davies" },
+  { id: "tdm-gym-294", name: "Strength Shop Axle Bar", brand: "Strength Shop", category: "Powerlifting", subcategory: "Bars", tdmRef: "294", cost: 50, marketValue: 100, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Dan Davies" },
+  { id: "tdm-gym-295", name: "Strength Shop Power Bar (British 2019)", brand: "Strength Shop", category: "Powerlifting", subcategory: "Bars", tdmRef: "295", cost: 50, marketValue: 100, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Dan Davies" },
+  { id: "tdm-gym-387", name: "Cybex Power Cage", brand: "Cybex", category: "Powerlifting", subcategory: "Racks", tdmRef: "387", cost: 800, marketValue: 2000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "FB", notes: "From Incoming Equipment log (order 60) -- shown as not yet arrived as of that sheet; confirmed by Liam as a real TDM Gym unit." },
 ];
 
 // Items whose only existing record is destined elsewhere (For Sale / a Unity
