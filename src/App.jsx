@@ -28,6 +28,8 @@ const SUBCATEGORIES = {
   Other: ['Other']
 };
 
+const MACHINE_TYPES = ['Selectorised', 'Plate Loaded', 'Cable', 'Free Weight', 'Bodyweight', 'Cardio', 'Other'];
+
 const LOCATIONS = [
   'WBAK HQ', 'At Craigs', 'At Nytram', 'At JP', 'Other Refurbisher',
   'TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth',
@@ -90,6 +92,7 @@ const seedItem = (o) => ({
   brand: o.brand,
   category: o.category,
   subcategory: o.subcategory || '',
+  machineType: o.machineType || '',
   cost: o.cost || 0,
   marketValue: o.marketValue || 0,
   currentLocation: o.currentLocation || 'WBAK HQ',
@@ -549,6 +552,7 @@ export default function App() {
   const [filterLocations, setFilterLocations] = useState([]);
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterBrands, setFilterBrands] = useState([]);
+  const [filterMachineTypes, setFilterMachineTypes] = useState([]);
   const [filterStatuses, setFilterStatuses] = useState([]);
   const [filterDestinations, setFilterDestinations] = useState([]);
 
@@ -689,13 +693,14 @@ export default function App() {
       if (filterLocations.length && !filterLocations.includes(e.currentLocation)) return false;
       if (filterCategories.length && !filterCategories.includes(e.category)) return false;
       if (filterBrands.length && !filterBrands.includes(e.brand)) return false;
+      if (filterMachineTypes.length && !filterMachineTypes.includes(e.machineType)) return false;
       if (filterStatuses.length && !filterStatuses.includes(e.status)) return false;
       if (filterDestinations.length && !filterDestinations.includes(e.destination)) return false;
       return true;
     });
-  }, [equipment, search, filterLocations, filterCategories, filterBrands, filterStatuses, filterDestinations]);
+  }, [equipment, search, filterLocations, filterCategories, filterBrands, filterMachineTypes, filterStatuses, filterDestinations]);
 
-  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length + filterStatuses.length + filterDestinations.length > 0 || search.length > 0;
+  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length + filterMachineTypes.length + filterStatuses.length + filterDestinations.length > 0 || search.length > 0;
 
   if (!loaded) {
     return (
@@ -766,6 +771,7 @@ export default function App() {
             filterLocations={filterLocations} setFilterLocations={setFilterLocations}
             filterCategories={filterCategories} setFilterCategories={setFilterCategories}
             filterBrands={filterBrands} setFilterBrands={setFilterBrands}
+            filterMachineTypes={filterMachineTypes} setFilterMachineTypes={setFilterMachineTypes}
             filterStatuses={filterStatuses} setFilterStatuses={setFilterStatuses}
             filterDestinations={filterDestinations} setFilterDestinations={setFilterDestinations}
             onSelect={setSelectedItem} onAdd={() => setShowAddItem(true)} />
@@ -841,10 +847,16 @@ function OverviewTab({ equipment, sales, vanRuns, setTab, onSelectItem, onSelect
     const inUse = equipment.filter(e => e.status === 'In Use');
     const forSale = equipment.filter(e => e.status === 'Listed for Sale' || (e.status === 'In Refurb' && e.destination === 'For Sale'));
 
-    // per gym counts
+    // valuation — kit we currently own, i.e. anything not already sold
+    const owned = equipment.filter(e => e.status !== 'Sold');
+    const totalValue = owned.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0);
+    const totalCost = owned.reduce((n, e) => n + (e.cost || 0), 0);
+
+    // per gym counts + value
     const byGym = {};
     ['TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth'].forEach(g => {
-      byGym[g] = equipment.filter(e => e.currentLocation === g).length;
+      const items = equipment.filter(e => e.currentLocation === g);
+      byGym[g] = { count: items.length, value: items.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0) };
     });
 
     // refurb stages breakdown
@@ -867,7 +879,7 @@ function OverviewTab({ equipment, sales, vanRuns, setTab, onSelectItem, onSelect
       return d >= now && d <= nextWeek;
     }).sort((a, b) => new Date(a.returnDate) - new Date(b.returnDate));
 
-    return { inRefurb, incoming, inUse, forSale, byGym, stageCount, upcoming, dueBack };
+    return { inRefurb, incoming, inUse, forSale, totalValue, totalCost, byGym, stageCount, upcoming, dueBack };
   }, [equipment, vanRuns]);
 
   const StatCard = ({ label, value, sublabel, onClick, accent }) => (
@@ -881,6 +893,16 @@ function OverviewTab({ equipment, sales, vanRuns, setTab, onSelectItem, onSelect
 
   return (
     <div className="space-y-6">
+      {/* Kit valuation banner */}
+      <div className="bg-gradient-to-br from-amber-500/15 to-amber-600/5 border border-amber-500/30 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-amber-300/80 mb-1">Total Kit Valuation</div>
+          <div className="text-3xl font-semibold text-[#F5F5F0]">{gbp(stats.totalValue)}</div>
+          <div className="text-xs text-[#96A093] mt-1">at cost: {gbp(stats.totalCost)} · owned kit not yet sold, across all locations</div>
+        </div>
+        <PoundSterling size={32} className="text-amber-400/60 hidden sm:block shrink-0" />
+      </div>
+
       {/* Top row: KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="In Use" value={stats.inUse.length} sublabel="across 5 gyms" onClick={() => setTab('inventory')} accent="text-emerald-400" />
@@ -893,10 +915,13 @@ function OverviewTab({ equipment, sales, vanRuns, setTab, onSelectItem, onSelect
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <Card title="By Gym" icon={Building2}>
           <div className="grid grid-cols-2 gap-2">
-            {Object.entries(stats.byGym).map(([g, n]) => (
+            {Object.entries(stats.byGym).map(([g, { count, value }]) => (
               <div key={g} className="flex items-center justify-between p-2.5 rounded-md bg-[#4C5C4A] border border-[#3D4A3B]">
                 <div className="text-sm text-[#DBE0D6]">{g}</div>
-                <div className="font-mono text-lg text-[#F5F5F0]">{n}</div>
+                <div className="text-right">
+                  <div className="font-mono text-lg text-[#F5F5F0] leading-tight">{count}</div>
+                  <div className="text-[10px] text-[#96A093]">{gbp(value)}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -995,6 +1020,7 @@ function InventoryTab({
   filterLocations, setFilterLocations,
   filterCategories, setFilterCategories,
   filterBrands, setFilterBrands,
+  filterMachineTypes, setFilterMachineTypes,
   filterStatuses, setFilterStatuses,
   filterDestinations, setFilterDestinations,
   onSelect, onAdd
@@ -1003,7 +1029,7 @@ function InventoryTab({
 
   const clearAll = () => {
     setSearch(''); setFilterLocations([]); setFilterCategories([]);
-    setFilterBrands([]); setFilterStatuses([]); setFilterDestinations([]);
+    setFilterBrands([]); setFilterMachineTypes([]); setFilterStatuses([]); setFilterDestinations([]);
   };
 
   return (
@@ -1031,6 +1057,7 @@ function InventoryTab({
         <FilterDropdown label="Location" options={LOCATIONS} selected={filterLocations} onChange={setFilterLocations} />
         <FilterDropdown label="Body Part" options={CATEGORIES} selected={filterCategories} onChange={setFilterCategories} />
         <FilterDropdown label="Brand" options={allBrands} selected={filterBrands} onChange={setFilterBrands} scrollable />
+        <FilterDropdown label="Machine Type" options={MACHINE_TYPES} selected={filterMachineTypes} onChange={setFilterMachineTypes} />
         <FilterDropdown label="Status" options={STATUSES} selected={filterStatuses} onChange={setFilterStatuses} />
         <FilterDropdown label="Going to" options={DESTINATIONS} selected={filterDestinations} onChange={setFilterDestinations} />
         {hasActiveFilters && (
@@ -1116,7 +1143,7 @@ function ItemCard({ item, onClick }) {
         )}
       </div>
       <div className="text-sm font-medium text-[#F5F5F0] mb-1 line-clamp-2 group-hover:text-amber-400 transition">{item.name}</div>
-      <div className="text-xs text-[#96A093] mb-3">{item.brand}  ·  {item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}</div>
+      <div className="text-xs text-[#96A093] mb-3">{item.brand}  ·  {item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}{item.machineType ? `  ·  ${item.machineType}` : ''}</div>
       <div className="flex items-center justify-between text-xs pt-2 border-t border-[#3D4A3B]">
         <div className="flex items-center gap-1 text-[#B8C0B1] min-w-0">
           <MapPin size={11} className="shrink-0" />
@@ -1143,6 +1170,7 @@ function ItemTable({ items, onSelect }) {
               <th className="text-left px-3 py-2.5 font-medium">Name</th>
               <th className="text-left px-3 py-2.5 font-medium">Brand</th>
               <th className="text-left px-3 py-2.5 font-medium">Category</th>
+              <th className="text-left px-3 py-2.5 font-medium">Type</th>
               <th className="text-left px-3 py-2.5 font-medium">Location</th>
               <th className="text-left px-3 py-2.5 font-medium">→ Going to</th>
               <th className="text-left px-3 py-2.5 font-medium">Status</th>
@@ -1159,6 +1187,7 @@ function ItemTable({ items, onSelect }) {
                   <td className="px-3 py-2 text-[#F5F5F0]">{item.name}</td>
                   <td className="px-3 py-2 text-[#DBE0D6]">{item.brand}</td>
                   <td className="px-3 py-2 text-[#B8C0B1] text-xs">{item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}</td>
+                  <td className="px-3 py-2 text-[#B8C0B1] text-xs">{item.machineType || <span className="text-[#7A867A]">—</span>}</td>
                   <td className="px-3 py-2 text-[#DBE0D6]">{item.currentLocation}</td>
                   <td className="px-3 py-2 text-[#B8C0B1]">{item.status === 'Incoming' ? item.destination : <span className="text-[#7A867A]">—</span>}</td>
                   <td className="px-3 py-2"><span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${stat.bg} ${stat.text}`}>{item.status}</span></td>
@@ -1698,6 +1727,7 @@ function ItemModal({ item, allItems, onClose, onSave, onDelete }) {
             <Field label="Brand" value={form.brand} onChange={v => update('brand', v)} />
             <Field type="select" label="Body Part" value={form.category} onChange={v => { update('category', v); update('subcategory', ''); }} options={CATEGORIES} />
             <Field type="select" label="Sub-category" value={form.subcategory} onChange={v => update('subcategory', v)} options={SUBCATEGORIES[form.category] || []} allowEmpty />
+            <Field type="select" label="Machine Type" value={form.machineType} onChange={v => update('machineType', v)} options={MACHINE_TYPES} allowEmpty />
             <Field type="number" label="Cost (£)" value={form.cost} onChange={v => update('cost', Number(v))} />
             <Field type="number" label="Market Value (£)" value={form.marketValue} onChange={v => update('marketValue', Number(v))} />
             <Field label="Seller / Source" value={form.seller} onChange={v => update('seller', v)} />
