@@ -39,11 +39,13 @@ const LOCATIONS = [
 const REFURBISHERS = ['Craigs', 'Nytram', 'JP', 'Other'];
 
 const DESTINATIONS = [
-  'TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth',
+  'TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth', 'Unity 5',
   'For Sale', 'Undecided'
 ];
 
-const GYM_DESTINATIONS = DESTINATIONS.filter(d => d !== 'For Sale' && d !== 'Undecided');
+// "Unity 5" has no physical site yet -- kit destined there is syphoned-off stock still
+// sitting at WBAK, not a location it can be marked "landed" at.
+const GYM_DESTINATIONS = DESTINATIONS.filter(d => d !== 'For Sale' && d !== 'Undecided' && d !== 'Unity 5');
 
 const STATUSES = [
   'Incoming', 'At HQ', 'In Refurb', 'Ready to Deploy', 'In Use', 'Listed for Sale', 'Sold'
@@ -282,15 +284,15 @@ const SEED_EQUIPMENT_BASE = [
   { id: "tdm-sportkraft-deadlift-bar", name: "Sportkraft Deadlifter Bar", brand: "Sportkraft", category: "Powerlifting", subcategory: "Bars", tdmRef: "285", cost: 371, marketValue: 300, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Kalle Rasenen" },
   { id: "tdm-aoa-deadlift-bar", name: "AOA Deadlift Bar (British 2019)", brand: "AOA", category: "Powerlifting", subcategory: "Bars", tdmRef: "292", cost: 150, marketValue: 250, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Dan Davies" },
   { id: "tdm-texas-deadlift-bar", name: "Texas Deadlift Bar", brand: "Texas", category: "Powerlifting", subcategory: "Bars", tdmRef: "80", cost: 491, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
-  { id: "tdm-concept2-rower", name: "Concept 2 Rower", brand: "Concept 2", category: "Cardio", subcategory: "Rower", cost: 800, marketValue: 1000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2026-06-10", seller: "Kirk" },
+  { id: "tdm-concept2-rower", name: "Concept2 Rower", brand: "Concept2", category: "Cardio", subcategory: "Rower", cost: 800, marketValue: 1000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2026-06-10", seller: "Kirk" },
   { id: "tdm-lf-powermill", name: "Life Fitness Powermill Climber", brand: "Life Fitness", category: "Cardio", subcategory: "Stair", tdmRef: "318", cost: 1700, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2026-06-05", seller: "Elahi" },
 
   // ===== UNITY GYMS =====
   // ===== UNITY BURTON — SEPT 2026 ASSET ROSTER =====
-  { id: "unity-burton-ref167", name: "Flex Incline Press", brand: "Flex", category: "Chest", subcategory: "Presses", tdmRef: "167", cost: 0, marketValue: 4000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
+  { id: "unity-burton-ref167", name: "Flex Fitness Incline Press", brand: "Flex Fitness", category: "Chest", subcategory: "Presses", tdmRef: "167", cost: 0, marketValue: 4000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref643", name: "Nautilus One Chest Press", brand: "Nautilus", category: "Chest", subcategory: "Presses", tdmRef: "643", cost: 0, marketValue: 1000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-hammer-strength-incline-bench", name: "Hammer Strength Incline Bench", brand: "Hammer Strength", category: "Chest", subcategory: "Presses", cost: 0, marketValue: 1500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
-  { id: "unity-burton-ref378", name: "Pannatta Fantastic Line Incline Chest Press", brand: "Pannatta", category: "Chest", subcategory: "Presses", tdmRef: "378", cost: 0, marketValue: 1500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
+  { id: "unity-burton-ref378", name: "Panatta Fantastic Line Incline Chest Press", brand: "Panatta", category: "Chest", subcategory: "Presses", tdmRef: "378", cost: 0, marketValue: 1500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref644", name: "Cybex Classic PL Converging Chest Press", brand: "Cybex", category: "Chest", subcategory: "Presses", tdmRef: "644", cost: 0, marketValue: 3000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref645", name: "Hammer Strength ISO-Lateral Horizontal Bench Press", brand: "Hammer Strength", category: "Chest", subcategory: "Presses", tdmRef: "645", cost: 0, marketValue: 950, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref646", name: "Precor PL Discovery Chest Press", brand: "Precor", category: "Chest", subcategory: "Presses", tdmRef: "646", cost: 0, marketValue: 950, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
@@ -326,7 +328,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-burton-ref675", name: "Cybex Hack Squat", brand: "Cybex", category: "Legs", subcategory: "Compounds", tdmRef: "675", cost: 0, marketValue: 3500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref676", name: "Primal Strength Squat", brand: "Primal Strength", category: "Legs", subcategory: "Compounds", tdmRef: "676", cost: 0, marketValue: 500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref677", name: "Cybex VR2 Seated Leg Press", brand: "Cybex", category: "Legs", subcategory: "Compounds", tdmRef: "677", cost: 0, marketValue: 2500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
-  { id: "unity-burton-ref375", name: "Body Masters 300A Power Squat", brand: "Body Masters", category: "Legs", subcategory: "Compounds", tdmRef: "375", cost: 0, marketValue: 1800, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
+  { id: "unity-burton-ref375", name: "Bodymasters 300A Power Squat", brand: "Bodymasters", category: "Legs", subcategory: "Compounds", tdmRef: "375", cost: 0, marketValue: 1800, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref678", name: "Life Fitness Pro1 Horizontal Leg Press", brand: "Life Fitness", category: "Legs", subcategory: "Compounds", tdmRef: "678", cost: 0, marketValue: 1500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref656", name: "Hammer Strength PL Leg Press", brand: "Hammer Strength", category: "Legs", subcategory: "Compounds", tdmRef: "656", cost: 0, marketValue: 1500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref679", name: "Life Fitness Pro1 Lying Leg Curl", brand: "Life Fitness", category: "Legs", subcategory: "Leg Curls", tdmRef: "679", cost: 0, marketValue: 1400, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
@@ -341,7 +343,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-burton-ref686", name: "Body-Solid Pro Clubline Vertical Knee Raise / Dip / Pull-Up (VKR)", brand: "Body-Solid", category: "Legs", tdmRef: "686", cost: 0, marketValue: 600, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref687", name: "Pendulum Squat", brand: "", category: "Legs", subcategory: "Compounds", tdmRef: "687", cost: 0, marketValue: 500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref688", name: "Nautilus Glute Drive", brand: "Nautilus", category: "Legs", subcategory: "Glutes / Hips", tdmRef: "688", cost: 0, marketValue: 2500, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
-  { id: "unity-burton-ref689", name: "Bullstrong Belt Squat", brand: "Bullstrong", category: "Legs", subcategory: "Compounds", tdmRef: "689", cost: 0, marketValue: 450, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
+  { id: "unity-burton-ref689", name: "Bull Strong Belt Squat", brand: "Bull Strong", category: "Legs", subcategory: "Compounds", tdmRef: "689", cost: 0, marketValue: 450, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref690", name: "Nautilus Impact Standing Calf", brand: "Nautilus", category: "Legs", subcategory: "Calves", tdmRef: "690", cost: 0, marketValue: 1000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref691", name: "Precor Icarian Abductor", brand: "Precor Icarian", category: "Legs", subcategory: "Glutes / Hips", tdmRef: "691", cost: 0, marketValue: 1000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref692", name: "Precor Icarian Adductor", brand: "Precor Icarian", category: "Legs", subcategory: "Adductors", tdmRef: "692", cost: 0, marketValue: 1000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
@@ -403,13 +405,13 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-fradley-ref744", name: "Life Fitness Pullover", brand: "Life Fitness", category: "Back", subcategory: "Pullover", tdmRef: "744", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref745", name: "Life Fitness Leg Press", brand: "Life Fitness", category: "Legs", subcategory: "Compounds", tdmRef: "745", cost: 0, marketValue: 1800, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref746", name: "Davis Leg Press", brand: "Davis", category: "Legs", subcategory: "Compounds", tdmRef: "746", cost: 0, marketValue: 900, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref747", name: "HammerStrength Hack Squat", brand: "HammerStrength", category: "Legs", subcategory: "Compounds", tdmRef: "747", cost: 0, marketValue: 2000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref748", name: "Primal Squat", brand: "Primal", category: "Legs", subcategory: "Compounds", tdmRef: "748", cost: 0, marketValue: 1000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref747", name: "Hammer Strength Hack Squat", brand: "Hammer Strength", category: "Legs", subcategory: "Compounds", tdmRef: "747", cost: 0, marketValue: 2000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref748", name: "Primal Strength Squat", brand: "Primal Strength", category: "Legs", subcategory: "Compounds", tdmRef: "748", cost: 0, marketValue: 1000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref749", name: "Life Fitness Seated Leg Curl", brand: "Life Fitness", category: "Legs", subcategory: "Leg Curls", tdmRef: "749", cost: 0, marketValue: 1250, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref750", name: "Ironborn Standing Hamstring Curl", brand: "Ironborn", category: "Legs", subcategory: "Leg Curls", tdmRef: "750", cost: 0, marketValue: 450, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref751", name: "Cybex Prone Leg Curl", brand: "Cybex", category: "Legs", subcategory: "Leg Curls", tdmRef: "751", cost: 0, marketValue: 2000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref752", name: "Cybex Eagle Leg Extension", brand: "Cybex", category: "Legs", subcategory: "Leg Extensions", tdmRef: "752", cost: 0, marketValue: 2500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref753", name: "LifeFitness Leg Extension", brand: "LifeFitness", category: "Legs", subcategory: "Leg Extensions", tdmRef: "753", cost: 0, marketValue: 1200, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref753", name: "Life Fitness Leg Extension", brand: "Life Fitness", category: "Legs", subcategory: "Leg Extensions", tdmRef: "753", cost: 0, marketValue: 1200, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref754", name: "Cybex PL Leg Extension", brand: "Cybex", category: "Legs", subcategory: "Leg Extensions", tdmRef: "754", cost: 0, marketValue: 1700, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref755", name: "Life Fitness Hip Adductor", brand: "Life Fitness", category: "Legs", subcategory: "Adductors", tdmRef: "755", cost: 0, marketValue: 850, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref756", name: "Nautilus Glute Drive", brand: "Nautilus", category: "Legs", subcategory: "Glutes / Hips", tdmRef: "756", cost: 0, marketValue: 2500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
@@ -420,7 +422,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-fradley-ref138", name: "Magnum Bicep Curl", brand: "Magnum", category: "Arms", subcategory: "Biceps", tdmRef: "138", cost: 0, marketValue: 2700, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref761", name: "Life Fitness Arm Curl", brand: "Life Fitness", category: "Arms", subcategory: "Biceps", tdmRef: "761", cost: 0, marketValue: 900, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref762", name: "Preacher Curl", brand: "", category: "Arms", subcategory: "Biceps", tdmRef: "762", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-primal-bench", name: "Primal Bench", brand: "Primal", category: "Powerlifting", subcategory: "Benches", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-primal-bench", name: "Primal Strength Bench", brand: "Primal Strength", category: "Powerlifting", subcategory: "Benches", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref763", name: "Incline Barbell Bench", brand: "", category: "Powerlifting", subcategory: "Benches", tdmRef: "763", cost: 0, marketValue: 400, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref764", name: "Cybex Smith Machine", brand: "Cybex", category: "Powerlifting", subcategory: "Racks", tdmRef: "764", cost: 0, marketValue: 2900, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref765", name: "Strength Systems Power Rack", brand: "Strength Systems", category: "Powerlifting", subcategory: "Racks", tdmRef: "765", cost: 0, marketValue: 0, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
@@ -436,11 +438,11 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-fradley-ref775", name: "Keiser Spin Bike", brand: "Keiser", category: "Cardio", subcategory: "Bike", tdmRef: "775", cost: 0, marketValue: 250, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref776", name: "Keiser Spin Bike", brand: "Keiser", category: "Cardio", subcategory: "Bike", tdmRef: "776", cost: 0, marketValue: 250, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref777", name: "Keiser Spin Bike", brand: "Keiser", category: "Cardio", subcategory: "Bike", tdmRef: "777", cost: 0, marketValue: 250, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref778", name: "StarTrac Treadmill", brand: "StarTrac", category: "Cardio", subcategory: "Treadmill", tdmRef: "778", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref779", name: "StarTrac Treadmill", brand: "StarTrac", category: "Cardio", subcategory: "Treadmill", tdmRef: "779", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref780", name: "StarTrac Treadmill", brand: "StarTrac", category: "Cardio", subcategory: "Treadmill", tdmRef: "780", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref781", name: "StarTrac Treadmill", brand: "StarTrac", category: "Cardio", subcategory: "Treadmill", tdmRef: "781", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref782", name: "StarTrac Treadmill", brand: "StarTrac", category: "Cardio", subcategory: "Treadmill", tdmRef: "782", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref778", name: "Star Trac Treadmill", brand: "Star Trac", category: "Cardio", subcategory: "Treadmill", tdmRef: "778", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref779", name: "Star Trac Treadmill", brand: "Star Trac", category: "Cardio", subcategory: "Treadmill", tdmRef: "779", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref780", name: "Star Trac Treadmill", brand: "Star Trac", category: "Cardio", subcategory: "Treadmill", tdmRef: "780", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref781", name: "Star Trac Treadmill", brand: "Star Trac", category: "Cardio", subcategory: "Treadmill", tdmRef: "781", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref782", name: "Star Trac Treadmill", brand: "Star Trac", category: "Cardio", subcategory: "Treadmill", tdmRef: "782", cost: 0, marketValue: 1500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref783", name: "Matrix Bike", brand: "Matrix", category: "Cardio", subcategory: "Bike", tdmRef: "783", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref784", name: "Cybex Bike", brand: "Cybex", category: "Cardio", subcategory: "Bike", tdmRef: "784", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref785", name: "Cybex Bike", brand: "Cybex", category: "Cardio", subcategory: "Bike", tdmRef: "785", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
@@ -451,8 +453,8 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-fradley-ref790", name: "Concept2 Rower (silver)", brand: "Concept2", category: "Cardio", subcategory: "Rower", tdmRef: "790", cost: 0, marketValue: 1000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref791", name: "Concept2 Rower (black)", brand: "Concept2", category: "Cardio", subcategory: "Rower", tdmRef: "791", cost: 0, marketValue: 1000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref792", name: "Concept2 Rower (black)", brand: "Concept2", category: "Cardio", subcategory: "Rower", tdmRef: "792", cost: 0, marketValue: 1000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref793", name: "StarTrac Cross Trainer", brand: "StarTrac", category: "Cardio", subcategory: "Elliptical", tdmRef: "793", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
-  { id: "unity-fradley-ref794", name: "StarTrac Cross Trainer", brand: "StarTrac", category: "Cardio", subcategory: "Elliptical", tdmRef: "794", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref793", name: "Star Trac Cross Trainer", brand: "Star Trac", category: "Cardio", subcategory: "Elliptical", tdmRef: "793", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
+  { id: "unity-fradley-ref794", name: "Star Trac Cross Trainer", brand: "Star Trac", category: "Cardio", subcategory: "Elliptical", tdmRef: "794", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref795", name: "Assault Bike", brand: "", category: "Cardio", subcategory: "Bike", tdmRef: "795", cost: 0, marketValue: 500, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref796", name: "Concept2 Ski Erg", brand: "Concept2", category: "Cardio", tdmRef: "796", cost: 0, marketValue: 1000, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
   { id: "unity-fradley-ref797", name: "TechnoGym Air Runner", brand: "TechnoGym", category: "Cardio", subcategory: "Treadmill", tdmRef: "797", cost: 0, marketValue: 1900, currentLocation: "Unity Fradley", destination: "Unity Fradley", status: "In Use" },
@@ -475,7 +477,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-lichfield-ref582", name: "Nautilus 2ST Overhead Press", brand: "Nautilus", category: "Shoulders", subcategory: "Presses", tdmRef: "582", cost: 0, marketValue: 3000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref583", name: "Plate Loaded Seated Shrug", brand: "", category: "Shoulders", tdmRef: "583", cost: 0, marketValue: 500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref584", name: "Viking Press", brand: "", category: "Shoulders", tdmRef: "584", cost: 0, marketValue: 250, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
-  { id: "unity-lichfield-ref256", name: "Flex Deltoid Raise", brand: "Flex", category: "Shoulders", subcategory: "Laterals", tdmRef: "256", cost: 0, marketValue: 4000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
+  { id: "unity-lichfield-ref256", name: "Flex Fitness Deltoid Raise", brand: "Flex Fitness", category: "Shoulders", subcategory: "Laterals", tdmRef: "256", cost: 0, marketValue: 4000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref585", name: "Pullum PL Pulldown", brand: "Pullum", category: "Back", subcategory: "Pulldowns", tdmRef: "585", cost: 0, marketValue: 900, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref586", name: "Precor PL Pulldown", brand: "Precor", category: "Back", subcategory: "Pulldowns", tdmRef: "586", cost: 0, marketValue: 1000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref587", name: "Hoist Roc-it Lat Pulldown", brand: "Hoist", category: "Back", subcategory: "Pulldowns", tdmRef: "587", cost: 0, marketValue: 1500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
@@ -490,14 +492,14 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-lichfield-ref256-2", name: "Flex Fitness Deltoid Raise", brand: "Flex Fitness", category: "Shoulders", subcategory: "Laterals", tdmRef: "256", cost: 0, marketValue: 5000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref220", name: "Booty Builder Loaded Back Extension", brand: "Booty Builder", category: "Back", subcategory: "Back Ext", tdmRef: "220", cost: 0, marketValue: 5000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref595", name: "Precor Deltoid Raise", brand: "Precor", category: "Shoulders", subcategory: "Laterals", tdmRef: "595", cost: 0, marketValue: 1900, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
-  { id: "unity-lichfield-ref146", name: "BodyMasters LXp 740 40 Degree Leg Press", brand: "BodyMasters", category: "Legs", subcategory: "Compounds", tdmRef: "146", cost: 0, marketValue: 3500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
-  { id: "unity-lichfield-ref596", name: "StarTrac Hack Squat", brand: "StarTrac", category: "Legs", subcategory: "Compounds", tdmRef: "596", cost: 0, marketValue: 2000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
+  { id: "unity-lichfield-ref146", name: "Bodymasters LXp 740 40 Degree Leg Press", brand: "Bodymasters", category: "Legs", subcategory: "Compounds", tdmRef: "146", cost: 0, marketValue: 3500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
+  { id: "unity-lichfield-ref596", name: "Star Trac Hack Squat", brand: "Star Trac", category: "Legs", subcategory: "Compounds", tdmRef: "596", cost: 0, marketValue: 2000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref597", name: "PL Rear Kick", brand: "", category: "Legs", subcategory: "Glutes / Hips", tdmRef: "597", cost: 0, marketValue: 1000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref129", name: "Cybex V1 Squat Press", brand: "Cybex", category: "Legs", subcategory: "Compounds", tdmRef: "129", cost: 0, marketValue: 7000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref598", name: "Nautilus Impact Standing Calf", brand: "Nautilus", category: "Legs", subcategory: "Calves", tdmRef: "598", cost: 0, marketValue: 1500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
-  { id: "unity-lichfield-ref599", name: "BullStrong Squat", brand: "BullStrong", category: "Legs", subcategory: "Compounds", tdmRef: "599", cost: 0, marketValue: 400, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
+  { id: "unity-lichfield-ref599", name: "Bull Strong Squat", brand: "Bull Strong", category: "Legs", subcategory: "Compounds", tdmRef: "599", cost: 0, marketValue: 400, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref600", name: "Nautilus Impact Seated Leg Press", brand: "Nautilus", category: "Legs", subcategory: "Compounds", tdmRef: "600", cost: 0, marketValue: 2500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
-  { id: "unity-lichfield-ref601", name: "IronBorn Pendulum Squat", brand: "IronBorn", category: "Legs", subcategory: "Compounds", tdmRef: "601", cost: 0, marketValue: 1200, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
+  { id: "unity-lichfield-ref601", name: "Ironborn Pendulum Squat", brand: "Ironborn", category: "Legs", subcategory: "Compounds", tdmRef: "601", cost: 0, marketValue: 1200, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref602", name: "Cybex NX Eagle", brand: "Cybex", category: "Legs", subcategory: "Leg Curls", tdmRef: "602", cost: 0, marketValue: 2500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref603", name: "Standing Leg Curl (black and yellow)", brand: "", category: "Legs", subcategory: "Leg Curls", tdmRef: "603", cost: 0, marketValue: 750, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref136", name: "Magnum Prone Leg Curl", brand: "Magnum", category: "Legs", subcategory: "Leg Curls", tdmRef: "136", cost: 0, marketValue: 2750, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
@@ -510,7 +512,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-lichfield-ref609", name: "Life Fitness Pro1 Arm Extension", brand: "Life Fitness", category: "Arms", subcategory: "Triceps", tdmRef: "609", cost: 0, marketValue: 1500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref610", name: "Taurus Seated Dip", brand: "Taurus", category: "Arms", subcategory: "Triceps", tdmRef: "610", cost: 0, marketValue: 1300, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref611", name: "Precor PL Bicep Curl", brand: "Precor", category: "Arms", subcategory: "Biceps", tdmRef: "611", cost: 0, marketValue: 1500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
-  { id: "unity-lichfield-ref204", name: "BodyMasters 410 Arm Curl", brand: "BodyMasters", category: "Arms", subcategory: "Biceps", tdmRef: "204", cost: 0, marketValue: 3000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
+  { id: "unity-lichfield-ref204", name: "Bodymasters 410 Arm Curl", brand: "Bodymasters", category: "Arms", subcategory: "Biceps", tdmRef: "204", cost: 0, marketValue: 3000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref612", name: "Cybex Eagle NX Arm Curl", brand: "Cybex", category: "Arms", subcategory: "Biceps", tdmRef: "612", cost: 0, marketValue: 2000, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref613", name: "Multipower Grey Smith Machine", brand: "Multipower", category: "Powerlifting", subcategory: "Racks", tdmRef: "613", cost: 0, marketValue: 0, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
   { id: "unity-lichfield-ref614", name: "Life Fitness Smith Machine", brand: "Life Fitness", category: "Powerlifting", subcategory: "Racks", tdmRef: "614", cost: 0, marketValue: 1500, currentLocation: "Unity Lichfield", destination: "Unity Lichfield", status: "In Use" },
@@ -565,7 +567,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-tamworth-ref515", name: "Nautilus Inspiration Fixed Lat Pulldown", brand: "Nautilus", category: "Back", subcategory: "Pulldowns", tdmRef: "515", cost: 0, marketValue: 1100, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref516", name: "Hammer Strength Plate Loaded Row", brand: "Hammer Strength", category: "Back", subcategory: "Rows", tdmRef: "516", cost: 0, marketValue: 500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref373", name: "Magnum Badger Pulldown", brand: "Magnum", category: "Back", subcategory: "Pulldowns", tdmRef: "373", cost: 0, marketValue: 1200, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
-  { id: "unity-tamworth-ref517", name: "IronBorn Plate Loaded Row", brand: "IronBorn", category: "Back", subcategory: "Rows", tdmRef: "517", cost: 0, marketValue: 700, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
+  { id: "unity-tamworth-ref517", name: "Ironborn Plate Loaded Row", brand: "Ironborn", category: "Back", subcategory: "Rows", tdmRef: "517", cost: 0, marketValue: 700, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref518", name: "Precor Seated Row", brand: "Precor", category: "Back", subcategory: "Rows", tdmRef: "518", cost: 0, marketValue: 1500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref519", name: "Precor Icarian Dual Stack Row", brand: "Precor Icarian", category: "Back", subcategory: "Rows", tdmRef: "519", cost: 0, marketValue: 2000, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref520", name: "T-Bar Row", brand: "", category: "Back", subcategory: "Rows", tdmRef: "520", cost: 0, marketValue: 400, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
@@ -574,7 +576,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-tamworth-ref379", name: "Paramount Mid Row", brand: "Paramount", category: "Back", subcategory: "Rows", tdmRef: "379", cost: 0, marketValue: 1200, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref523", name: "Cybex Row / Rear Delt", brand: "Cybex", category: "Back", subcategory: "Rows", tdmRef: "523", cost: 0, marketValue: 2500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-row-rear-delt-unspecified", name: "Row / Rear Delt (unspecified)", brand: "", category: "Back", cost: 0, marketValue: 3800, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
-  { id: "unity-tamworth-ref524", name: "Powersport Pullover", brand: "Powersport", category: "Back", subcategory: "Pullover", tdmRef: "524", cost: 0, marketValue: 1200, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
+  { id: "unity-tamworth-ref524", name: "Power Sport Pullover", brand: "Power Sport", category: "Back", subcategory: "Pullover", tdmRef: "524", cost: 0, marketValue: 1200, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref525", name: "Cybex Eagle Leg Press", brand: "Cybex", category: "Legs", subcategory: "Compounds", tdmRef: "525", cost: 0, marketValue: 1500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref526", name: "Rogers Rep Power Squat", brand: "Rogers Rep", category: "Legs", subcategory: "Compounds", tdmRef: "526", cost: 0, marketValue: 500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref527", name: "Precor Angled Leg Press", brand: "Precor", category: "Legs", subcategory: "Compounds", tdmRef: "527", cost: 0, marketValue: 2000, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
@@ -583,7 +585,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-tamworth-ref530", name: "Nautilus Plate Loaded Hack Squat", brand: "Nautilus", category: "Legs", subcategory: "Compounds", tdmRef: "530", cost: 0, marketValue: 1500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref531", name: "Watson Pendulum Squat", brand: "Watson", category: "Legs", subcategory: "Compounds", tdmRef: "531", cost: 0, marketValue: 1200, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref532", name: "Hack Squat", brand: "", category: "Legs", subcategory: "Compounds", tdmRef: "532", cost: 0, marketValue: 800, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
-  { id: "unity-tamworth-ref533", name: "Primal Leverage Squat", brand: "Primal", category: "Legs", subcategory: "Compounds", tdmRef: "533", cost: 0, marketValue: 800, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
+  { id: "unity-tamworth-ref533", name: "Primal Strength Leverage Squat", brand: "Primal Strength", category: "Legs", subcategory: "Compounds", tdmRef: "533", cost: 0, marketValue: 800, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref534", name: "Precor Seated Leg Curl", brand: "Precor", category: "Legs", subcategory: "Leg Curls", tdmRef: "534", cost: 0, marketValue: 1000, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref535", name: "Cybex VR3 Kneeling Leg Curl", brand: "Cybex", category: "Legs", subcategory: "Leg Curls", tdmRef: "535", cost: 0, marketValue: 1000, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref536", name: "Life Fitness Pro1 Prone Leg Curl", brand: "Life Fitness", category: "Legs", subcategory: "Leg Curls", tdmRef: "536", cost: 0, marketValue: 1200, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
@@ -606,7 +608,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "unity-tamworth-ref550", name: "Life Fitness Bicep Curl", brand: "Life Fitness", category: "Arms", subcategory: "Biceps", tdmRef: "550", cost: 0, marketValue: 1000, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref551", name: "Strength Shop Competition Bench", brand: "Strength Shop", category: "Powerlifting", subcategory: "Benches", tdmRef: "551", cost: 0, marketValue: 600, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref552", name: "Strength Shop Competition Bench", brand: "Strength Shop", category: "Powerlifting", subcategory: "Benches", tdmRef: "552", cost: 0, marketValue: 600, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
-  { id: "unity-tamworth-ref553", name: "Primal Squat Rack", brand: "Primal", category: "Powerlifting", subcategory: "Racks", tdmRef: "553", cost: 0, marketValue: 500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
+  { id: "unity-tamworth-ref553", name: "Primal Strength Squat Rack", brand: "Primal Strength", category: "Powerlifting", subcategory: "Racks", tdmRef: "553", cost: 0, marketValue: 500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref554", name: "Half Rack", brand: "", category: "Powerlifting", subcategory: "Racks", tdmRef: "554", cost: 0, marketValue: 500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref172", name: "Cybex V1 Smith Machine", brand: "Cybex", category: "Powerlifting", subcategory: "Racks", tdmRef: "172", cost: 0, marketValue: 5000, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
   { id: "unity-tamworth-ref640", name: "Hammer Strength Rack", brand: "Hammer Strength", category: "Powerlifting", subcategory: "Racks", tdmRef: "640", cost: 0, marketValue: 500, currentLocation: "Unity Tamworth", destination: "Unity Tamworth", status: "In Use" },
@@ -702,7 +704,7 @@ const SEED_EQUIPMENT_BASE = [
 
   // ===== TDM GYM SEPT 2026 FULL ASSET ROSTER — NEW ITEMS (no prior record) =====
   { id: "tdm-gym-259", name: "Nautilus Leverage Chest Press", brand: "Nautilus", category: "Other", tdmRef: "259", cost: 2900, marketValue: 3200, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
-  { id: "tdm-gym-383", name: "Nautilus Nitro Pec Fly", brand: "Nautilus Nitro", category: "Other", tdmRef: "383", cost: 2900, marketValue: 3250, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
+  { id: "tdm-gym-383", name: "Nautilus Pec Fly", brand: "Nautilus", category: "Other", tdmRef: "383", cost: 2900, marketValue: 3250, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-267", name: "Cybex Eagle Kneeling Lateral", brand: "Cybex", category: "Other", tdmRef: "267", cost: 3000, marketValue: 4000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-374", name: "Bodymasters Pulldown", brand: "Bodymasters", category: "Other", tdmRef: "374", cost: 750, marketValue: 1500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-382", name: "Citadel Pulldown", brand: "Citadel", category: "Other", tdmRef: "382", cost: 3300, marketValue: 6000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Brisbane" },
@@ -761,8 +763,8 @@ const SEED_EQUIPMENT_BASE = [
   { id: "wbak-804", name: "Cybex Eagle Pec Fly / Rear Delt", brand: "Cybex", category: "Other", tdmRef: "804", cost: 100, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-805", name: "Cybex Eagle Torso Rotation", brand: "Cybex", category: "Other", tdmRef: "805", cost: 100, marketValue: 600, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-806", name: "Cybex Eagle Overhead Press", brand: "Cybex", category: "Other", tdmRef: "806", cost: 950, marketValue: 1500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-807", name: "Cybex Eagle Arm Curl", brand: "Cybex", category: "Other", tdmRef: "807", cost: 0, marketValue: 1500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-808", name: "Cybex Plate-Loaded Bench Press", brand: "Cybex", category: "Other", tdmRef: "808", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-807", name: "Cybex Eagle Arm Curl", brand: "Cybex", category: "Other", tdmRef: "807", cost: 0, marketValue: 1500, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-808", name: "Cybex Plate-Loaded Bench Press", brand: "Cybex", category: "Other", tdmRef: "808", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-364", name: "Cybex FT360S Functional Trainer", brand: "Cybex", category: "Other", tdmRef: "364", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "TDM Gym", status: "At HQ" },
   { id: "wbak-809", name: "Cybex Treadmill", brand: "Cybex", category: "Other", tdmRef: "809", cost: 1000, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-161", name: "Flex Fitness Leverage Shoulder Press", brand: "Flex Fitness", category: "Other", tdmRef: "161", cost: 4500, marketValue: 5000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
@@ -779,49 +781,49 @@ const SEED_EQUIPMENT_BASE = [
   { id: "wbak-145", name: "Bodymasters L-8401A Hack Squat", brand: "Bodymasters", category: "Other", tdmRef: "145", cost: 2950, marketValue: 3500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-157", name: "Bodymasters CX Leg Extension", brand: "Bodymasters", category: "Other", tdmRef: "157", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-158", name: "Bodymasters CX Leg Curl", brand: "Bodymasters", category: "Other", tdmRef: "158", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-812", name: "Nautilus Inspiration Glute Press", brand: "Nautilus", category: "Other", tdmRef: "812", cost: 0, marketValue: 800, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-812", name: "Nautilus Inspiration Glute Press", brand: "Nautilus", category: "Other", tdmRef: "812", cost: 0, marketValue: 800, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-813", name: "Nautilus Nitro Plus Seated Leg Curl", brand: "Nautilus", category: "Other", tdmRef: "813", cost: 140, marketValue: 500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-814", name: "Nautilus Nitro Plus Leg Press", brand: "Nautilus", category: "Other", tdmRef: "814", cost: 140, marketValue: 2000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-348", name: "Nautilus Fixed Lat Pulldown", brand: "Nautilus", category: "Other", tdmRef: "348", cost: 0, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-815", name: "Nautilus Xpload Plate-Loaded Seated Dip", brand: "Nautilus", category: "Other", tdmRef: "815", cost: 0, marketValue: 1800, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-816", name: "Nautilus Bicep / Tricep Machine", brand: "Nautilus", category: "Other", tdmRef: "816", cost: 0, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-348", name: "Nautilus Fixed Lat Pulldown", brand: "Nautilus", category: "Other", tdmRef: "348", cost: 0, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-815", name: "Nautilus Xpload Plate-Loaded Seated Dip", brand: "Nautilus", category: "Other", tdmRef: "815", cost: 0, marketValue: 1800, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-816", name: "Nautilus Bicep / Tricep Machine", brand: "Nautilus", category: "Other", tdmRef: "816", cost: 0, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-817", name: "Nautilus Upright Bike", brand: "Nautilus", category: "Other", tdmRef: "817", cost: 140, marketValue: 150, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-818", name: "Nautilus Bench", brand: "Nautilus", category: "Other", tdmRef: "818", cost: 140, marketValue: 700, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-237", name: "Precor Icarian Smith Machine", brand: "Precor", category: "Other", tdmRef: "237", cost: 2500, marketValue: 3000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-819", name: "Precor Angled Leg Press", brand: "Precor", category: "Other", tdmRef: "819", cost: 0, marketValue: 1800, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-820", name: "Precor Seated Row", brand: "Precor", category: "Other", tdmRef: "820", cost: 0, marketValue: 500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-819", name: "Precor Angled Leg Press", brand: "Precor", category: "Other", tdmRef: "819", cost: 0, marketValue: 1800, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-820", name: "Precor Seated Row", brand: "Precor", category: "Other", tdmRef: "820", cost: 0, marketValue: 500, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-821", name: "Precor Icarian Leg Extension 605", brand: "Precor", category: "Other", tdmRef: "821", cost: 1200, marketValue: 2000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-822", name: "Precor Bicep Curl / Tricep Extension", brand: "Precor", category: "Other", tdmRef: "822", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-823", name: "Precor Infinity Line Lat Pulldown", brand: "Precor", category: "Other", tdmRef: "823", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-824", name: "Precor Icarian Decline Bench Press", brand: "Precor", category: "Other", tdmRef: "824", cost: 0, marketValue: 300, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-823", name: "Precor Infinity Line Lat Pulldown", brand: "Precor", category: "Other", tdmRef: "823", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-824", name: "Precor Icarian Decline Bench Press", brand: "Precor", category: "Other", tdmRef: "824", cost: 0, marketValue: 300, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-825", name: "Precor Treadmill x2", brand: "Precor", category: "Other", tdmRef: "825", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-826", name: "Life Fitness Pulley Machine", brand: "Life Fitness", category: "Other", tdmRef: "826", cost: 0, marketValue: 2200, currentLocation: "WBAK HQ", destination: "TDM Gym", status: "At HQ" },
   { id: "wbak-827", name: "Life Fitness Bicep Curl", brand: "Life Fitness", category: "Other", tdmRef: "827", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "TDM Gym", status: "At HQ" },
-  { id: "wbak-828", name: "Life Fitness Pec Fly", brand: "Life Fitness", category: "Other", tdmRef: "828", cost: 0, marketValue: 800, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-829", name: "Life Fitness Pro 1 Tricep Machine", brand: "Life Fitness", category: "Other", tdmRef: "829", cost: 0, marketValue: 800, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-830", name: "Hammer Strength Selectorised Leg Extension", brand: "Hammer Strength", category: "Other", tdmRef: "830", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-828", name: "Life Fitness Pec Fly", brand: "Life Fitness", category: "Other", tdmRef: "828", cost: 0, marketValue: 800, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-829", name: "Life Fitness Pro 1 Tricep Machine", brand: "Life Fitness", category: "Other", tdmRef: "829", cost: 0, marketValue: 800, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-830", name: "Hammer Strength Selectorised Leg Extension", brand: "Hammer Strength", category: "Other", tdmRef: "830", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-831", name: "Hammer Strength Plate-Loaded Leg Curl", brand: "Hammer Strength", category: "Other", tdmRef: "831", cost: 300, marketValue: 600, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-832", name: "Hammer Strength MTS-Style Selectorised Chest Press", brand: "Hammer Strength", category: "Other", tdmRef: "832", cost: 0, marketValue: 600, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-832", name: "Hammer Strength MTS-Style Selectorised Chest Press", brand: "Hammer Strength", category: "Other", tdmRef: "832", cost: 0, marketValue: 600, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-833", name: "Panatta Fit 200 Shoulder Press", brand: "Panatta", category: "Other", tdmRef: "833", cost: 100, marketValue: 500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-834", name: "Panatta Fit 2000 Pec Deck", brand: "Panatta", category: "Other", tdmRef: "834", cost: 100, marketValue: 500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-835", name: "Panatta Tricep Machine", brand: "Panatta", category: "Other", tdmRef: "835", cost: 0, marketValue: 600, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-207", name: "Paramount Rotary Chest Press", brand: "Paramount", category: "Other", tdmRef: "207", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-835", name: "Panatta Tricep Machine", brand: "Panatta", category: "Other", tdmRef: "835", cost: 0, marketValue: 600, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-207", name: "Paramount Rotary Chest Press", brand: "Paramount", category: "Other", tdmRef: "207", cost: 0, marketValue: 1200, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-198", name: "Paramount Vertical Butterfly PL3-100", brand: "Paramount", category: "Other", tdmRef: "198", cost: 300, marketValue: 900, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-214", name: "Hoist Mid Row", brand: "Hoist", category: "Other", tdmRef: "214", cost: 450, marketValue: 1300, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-836", name: "Magnum Vertical Bench", brand: "Magnum", category: "Other", tdmRef: "836", cost: 1500, marketValue: 2000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-837", name: "Primal Strength T-Bar Row", brand: "Primal Strength", category: "Other", tdmRef: "837", cost: 0, marketValue: 100, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-838", name: "Primal Strength Plate-Loaded Leg Extension", brand: "Primal Strength", category: "Other", tdmRef: "838", cost: 0, marketValue: 500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-839", name: "Primal Strength Plate-Loaded Shoulder Press", brand: "Primal Strength", category: "Other", tdmRef: "839", cost: 0, marketValue: 500, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-837", name: "Primal Strength T-Bar Row", brand: "Primal Strength", category: "Other", tdmRef: "837", cost: 0, marketValue: 100, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-838", name: "Primal Strength Plate-Loaded Leg Extension", brand: "Primal Strength", category: "Other", tdmRef: "838", cost: 0, marketValue: 500, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-839", name: "Primal Strength Plate-Loaded Shoulder Press", brand: "Primal Strength", category: "Other", tdmRef: "839", cost: 0, marketValue: 500, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-276", name: "Strive Smart Strength Plate-Loaded Tricep Extension", brand: "Strive", category: "Other", tdmRef: "276", cost: 1200, marketValue: 2000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-222", name: "Booty Builder V8", brand: "Booty Builder", category: "Other", tdmRef: "222", cost: 3698, marketValue: 3700, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-316", name: "Concept2 Rower", brand: "Concept2", category: "Other", tdmRef: "316", cost: 800, marketValue: 800, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
-  { id: "wbak-840", name: "Cutler Adductor", brand: "Cutler", category: "Other", tdmRef: "840", cost: 0, marketValue: 350, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
-  { id: "wbak-841", name: "Cutler Abductor", brand: "Cutler", category: "Other", tdmRef: "841", cost: 0, marketValue: 350, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "Earmarked for a Unity gym (unspecified which) per Aug 2026 WBAK stock list" },
+  { id: "wbak-840", name: "Cutler Adductor", brand: "Cutler", category: "Other", tdmRef: "840", cost: 0, marketValue: 350, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
+  { id: "wbak-841", name: "Cutler Abductor", brand: "Cutler", category: "Other", tdmRef: "841", cost: 0, marketValue: 350, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "Syphoned off from WBAK stock, ready for Unity 5 per Aug 2026 stock list" },
   { id: "wbak-842", name: "Guardian Power Sport Chest Press", brand: "Guardian", category: "Other", tdmRef: "842", cost: 50, marketValue: 350, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-843", name: "Integra Jungle Gym", brand: "Integra", category: "Other", tdmRef: "843", cost: 50, marketValue: 350, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-130", name: "Streamline Pec Fly", brand: "Streamline", category: "Other", tdmRef: "130", cost: 700, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-844", name: "Strength Shop Rack x2", brand: "Strength Shop", category: "Other", tdmRef: "844", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "TDM Gym", status: "At HQ" },
-  { id: "wbak-845", name: "Technogym Lat Pulldown", brand: "Technogym", category: "Other", tdmRef: "845", cost: 750, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
+  { id: "wbak-845", name: "TechnoGym Lat Pulldown", brand: "TechnoGym", category: "Other", tdmRef: "845", cost: 750, marketValue: 1000, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
   { id: "wbak-846", name: "Plate-Loaded Chest Press", brand: "", category: "Other", tdmRef: "846", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ" },
 
   // ===== WBAK STOCK LIST AUG 2026 — uncertain entries, no financial data in source =====
@@ -833,6 +835,11 @@ const SEED_EQUIPMENT_BASE = [
   { id: "wbak-uncertain-363", name: "Matrix calf raise", brand: "Matrix", category: "Other", tdmRef: "363", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "From Aug 2026 WBAK stock list, no value/notes recorded -- needs verification" },
   { id: "wbak-uncertain-365", name: "Life Fitness crossover (newer)", brand: "Life Fitness", category: "Other", tdmRef: "365", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "From Aug 2026 WBAK stock list, no value/notes recorded -- needs verification" },
   { id: "wbak-uncertain-850", name: "Cybex prone leg curl (from Lichfield?)", brand: "", category: "Other", tdmRef: "850", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Undecided", status: "At HQ", notes: "From Aug 2026 WBAK stock list, no value/notes recorded -- needs verification" },
+
+  // ===== UNITY 5 — SYPHONED OFF STOCK, NO PRIOR RECORD =====
+  { id: "unity5-ref356", name: "Magnum Biangular Chest Press", brand: "Magnum", category: "Chest", subcategory: "Presses", tdmRef: "356", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "No value recorded in source sheet -- needs valuation" },
+  { id: "unity5-ref352", name: "Magnum Leg Extension", brand: "Magnum", category: "Legs", subcategory: "Leg Extensions", tdmRef: "352", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "No value recorded in source sheet -- needs valuation" },
+  { id: "unity5-ref150", name: "Bodymasters 410 Bicep", brand: "Bodymasters", category: "Arms", subcategory: "Biceps", tdmRef: "150", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "Unity 5", status: "At HQ", notes: "No value recorded in source sheet -- needs valuation" },
 ];
 
 // Items whose only existing record is destined elsewhere (For Sale / a Unity
@@ -1294,8 +1301,7 @@ export default function App() {
 
       <main className="max-w-[1600px] mx-auto px-6 py-6">
         {tab === 'overview' && (
-          <OverviewTab equipment={equipment} sales={sales} vanRuns={vanRuns} setTab={setTab}
-            onSelectItem={setSelectedItem} onSelectRun={setSelectedRun} />
+          <OverviewTab equipment={equipment} setTab={setTab} />
         )}
         {tab === 'inventory' && (
           <InventoryTab
@@ -1374,174 +1380,61 @@ export default function App() {
 
 // ================ OVERVIEW ================
 
-function OverviewTab({ equipment, sales, vanRuns, setTab, onSelectItem, onSelectRun }) {
+function OverviewTab({ equipment, setTab }) {
   const stats = useMemo(() => {
-    const inRefurb = equipment.filter(isInRefurbWorkflow);
-    const incoming = equipment.filter(e => e.status === 'Incoming');
-    const inUse = equipment.filter(e => e.status === 'In Use');
-    const forSale = equipment.filter(e => e.status === 'Listed for Sale' || (e.status === 'In Refurb' && e.destination === 'For Sale'));
-
-    // valuation — kit we currently own, i.e. anything not already sold
     const owned = equipment.filter(e => e.status !== 'Sold');
     const totalValue = owned.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0);
-    const totalCost = owned.reduce((n, e) => n + (e.cost || 0), 0);
 
-    // per gym counts + value
-    const byGym = {};
-    ['TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth'].forEach(g => {
-      const items = equipment.filter(e => e.currentLocation === g);
-      byGym[g] = { count: items.length, value: items.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0) };
+    const GYMS = ['TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth'];
+    // Every owned item lands in exactly one bucket, so the breakdown always sums to the total.
+    const bucketOf = (e) => {
+      if (GYMS.includes(e.currentLocation)) return e.currentLocation;
+      if (e.destination === 'Unity 5') return 'Unity 5';
+      return 'WBAK';
+    };
+    const buckets = {};
+    [...GYMS, 'WBAK', 'Unity 5'].forEach(b => buckets[b] = { count: 0, value: 0 });
+    owned.forEach(e => {
+      const b = buckets[bucketOf(e)];
+      b.count++;
+      b.value += e.marketValue || e.cost || 0;
     });
 
-    // refurb stages breakdown
-    const stageCount = {};
-    REFURB_STAGES.forEach(s => stageCount[s] = 0);
-    inRefurb.forEach(e => { if (stageCount[e.refurbStage] !== undefined) stageCount[e.refurbStage]++; });
+    const breakdown = [
+      ...GYMS.map(g => ({ label: g, ...buckets[g] })),
+      { label: 'WBAK (We Buy Any Kit)', ...buckets['WBAK'] },
+      { label: 'Syphoned Off — Unity 5', ...buckets['Unity 5'] },
+    ];
 
-    // upcoming van runs
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const upcoming = vanRuns
-      .filter(r => new Date(r.date) >= now && r.status !== 'completed')
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    return { totalValue, breakdown };
+  }, [equipment]);
 
-    // due back this week
-    const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
-    const dueBack = equipment.filter(e => {
-      if (!e.returnDate) return false;
-      const d = new Date(e.returnDate);
-      return d >= now && d <= nextWeek;
-    }).sort((a, b) => new Date(a.returnDate) - new Date(b.returnDate));
-
-    return { inRefurb, incoming, inUse, forSale, totalValue, totalCost, byGym, stageCount, upcoming, dueBack };
-  }, [equipment, vanRuns]);
-
-  const StatCard = ({ label, value, sublabel, onClick, accent }) => (
-    <button onClick={onClick} disabled={!onClick}
-      className={`text-left w-full bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl p-4 ${onClick ? 'hover:border-[#8FA087] cursor-pointer' : 'cursor-default'} transition`}>
-      <div className="text-[11px] uppercase tracking-wider text-[#96A093] mb-1.5">{label}</div>
-      <div className={`text-2xl font-semibold ${accent || 'text-[#F5F5F0]'}`}>{value}</div>
-      {sublabel && <div className="text-xs text-[#96A093] mt-1">{sublabel}</div>}
-    </button>
-  );
+  const maxValue = Math.max(...stats.breakdown.map(b => b.value), 1);
 
   return (
-    <div className="space-y-6">
-      {/* Kit valuation banner */}
-      <div className="bg-gradient-to-br from-amber-500/15 to-amber-600/5 border border-amber-500/30 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="text-[11px] uppercase tracking-wider text-amber-300/80 mb-1">Total Kit Valuation</div>
-          <div className="text-3xl font-semibold text-[#F5F5F0]">{gbp(stats.totalValue)}</div>
-          <div className="text-xs text-[#96A093] mt-1">at cost: {gbp(stats.totalCost)} · owned kit not yet sold, across all locations</div>
-        </div>
-        <PoundSterling size={32} className="text-amber-400/60 hidden sm:block shrink-0" />
+    <div className="max-w-2xl mx-auto space-y-8 py-4">
+      <div className="text-center">
+        <div className="text-[11px] uppercase tracking-wider text-amber-300/80 mb-2">Total Kit Valuation</div>
+        <div className="text-5xl font-semibold text-[#F5F5F0]">{gbp(stats.totalValue)}</div>
       </div>
 
-      {/* Top row: KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="In Use" value={stats.inUse.length} sublabel="across 5 gyms" onClick={() => setTab('inventory')} accent="text-emerald-400" />
-        <StatCard label="In Refurb" value={stats.inRefurb.length} sublabel="active pipeline" onClick={() => setTab('refurb')} accent="text-orange-400" />
-        <StatCard label="Incoming" value={stats.incoming.length} sublabel="still with seller" onClick={() => setTab('inventory')} accent="text-blue-400" />
-        <StatCard label="For Sale" value={stats.forSale.length} sublabel="destined to sell" onClick={() => setTab('sales')} accent="text-amber-400" />
-      </div>
-
-      {/* Middle row: Per-gym + Refurb stages */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Card title="By Gym" icon={Building2}>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(stats.byGym).map(([g, { count, value }]) => (
-              <div key={g} className="flex items-center justify-between p-2.5 rounded-md bg-[#4C5C4A] border border-[#3D4A3B]">
-                <div className="text-sm text-[#DBE0D6]">{g}</div>
-                <div className="text-right">
-                  <div className="font-mono text-lg text-[#F5F5F0] leading-tight">{count}</div>
-                  <div className="text-[10px] text-[#96A093]">{gbp(value)}</div>
-                </div>
+      <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl divide-y divide-[#3D4A3B] overflow-hidden">
+        {stats.breakdown.map(b => (
+          <button key={b.label} onClick={() => setTab('inventory')}
+            className="w-full text-left px-5 py-4 hover:bg-[#4C5C4A]/40 transition">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="text-sm font-medium text-[#EAEEE5]">{b.label}</div>
+              <div className="text-right shrink-0">
+                <div className="text-sm font-semibold text-[#F5F5F0]">{gbp(b.value)}</div>
+                <div className="text-[11px] text-[#96A093]">{b.count} item{b.count === 1 ? '' : 's'}</div>
               </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Refurb Pipeline" icon={Wrench}>
-          <div className="space-y-1.5">
-            {REFURB_STAGES.map(stage => {
-              const n = stats.stageCount[stage];
-              const c = REFURB_STAGE_COLORS[stage];
-              const max = Math.max(...Object.values(stats.stageCount), 1);
-              return (
-                <div key={stage} className="flex items-center gap-3">
-                  <div className={`text-xs w-24 ${c.text}`}>{stage}</div>
-                  <div className="flex-1 h-6 bg-[#4C5C4A] rounded relative overflow-hidden border border-[#3D4A3B]">
-                    <div className={`h-full ${c.bg} border-r ${c.border}`} style={{ width: `${(n/max)*100}%` }} />
-                    <div className="absolute inset-0 flex items-center px-2 text-xs font-mono">{n}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      </div>
-
-      {/* Bottom row: due back + upcoming van */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Card title="Due Back This Week" icon={Clock} action={{ label: 'View refurb', onClick: () => setTab('refurb') }}>
-          {stats.dueBack.length === 0 ? (
-            <div className="text-sm text-[#96A093] py-4 text-center">Nothing due back in the next 7 days</div>
-          ) : (
-            <div className="space-y-1">
-              {stats.dueBack.slice(0, 8).map(item => (
-                <button key={item.id} onClick={() => onSelectItem(item)}
-                  className="w-full text-left flex items-center justify-between p-2.5 rounded-md hover:bg-[#5D6E5C]/50 transition">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <RefurbStageBadge stage={item.refurbStage} />
-                    <div className="min-w-0">
-                      <div className="text-sm text-[#EAEEE5] truncate">{item.name}</div>
-                      <div className="text-xs text-[#96A093]">{item.refurbisher}  ·  → {item.destination}</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-amber-400 font-mono whitespace-nowrap">{fmtDate(item.returnDate)}</div>
-                </button>
-              ))}
             </div>
-          )}
-        </Card>
-
-        <Card title="Upcoming Van Runs" icon={Truck} action={{ label: 'View schedule', onClick: () => setTab('van') }}>
-          {stats.upcoming.length === 0 ? (
-            <div className="text-sm text-[#96A093] py-4 text-center">No van runs scheduled</div>
-          ) : (
-            <div className="space-y-1">
-              {stats.upcoming.slice(0, 5).map(run => (
-                <button key={run.id} onClick={() => onSelectRun(run)}
-                  className="w-full text-left flex items-center justify-between p-2.5 rounded-md hover:bg-[#5D6E5C]/50 transition">
-                  <div className="min-w-0">
-                    <div className="text-sm text-[#EAEEE5] truncate">{run.job}</div>
-                    <div className="text-xs text-[#96A093] truncate">{fmtDate(run.date)}{run.people.length ? `  ·  ${run.people.join(', ')}` : ''}</div>
-                  </div>
-                </button>
-              ))}
+            <div className="h-1.5 bg-[#4C5C4A] rounded-full overflow-hidden">
+              <div className="h-full bg-amber-500/70 rounded-full" style={{ width: `${(b.value / maxValue) * 100}%` }} />
             </div>
-          )}
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function Card({ title, icon: Icon, action, children }) {
-  return (
-    <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#3D4A3B]">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#EAEEE5]">
-          {Icon && <Icon size={14} className="text-[#B8C0B1]" />}
-          {title}
-        </div>
-        {action && (
-          <button onClick={action.onClick} className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1">
-            {action.label} <ChevronRight size={12} />
           </button>
-        )}
+        ))}
       </div>
-      <div className="p-4">{children}</div>
     </div>
   );
 }
