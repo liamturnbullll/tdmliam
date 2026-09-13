@@ -1489,7 +1489,12 @@ function InventoryTab({
       </div>
 
       {/* Results */}
-      {equipment.length === 0 ? (
+      {!hasActiveFilters ? (
+        <div className="text-center py-20 text-[#96A093]">
+          <Filter size={32} className="mx-auto mb-2 opacity-40" />
+          <div className="text-sm">Select a location, body part, or brand above to view kit</div>
+        </div>
+      ) : equipment.length === 0 ? (
         <div className="text-center py-16 text-[#96A093]">
           <Package size={32} className="mx-auto mb-2 opacity-40" />
           <div className="text-sm">No items match those filters</div>
