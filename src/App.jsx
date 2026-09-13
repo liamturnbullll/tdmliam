@@ -92,7 +92,8 @@ const K = {
   MIGRATED_REFURB_V1: 'migrated:refurb-v1',
   MIGRATED_UNITY_ROSTER_V1: 'migrated:unity-roster-v1',
   MIGRATED_TDMREF_V1: 'migrated:tdmref-v1',
-  MIGRATED_DUPLICATES_V1: 'migrated:duplicates-v1'
+  MIGRATED_DUPLICATES_V1: 'migrated:duplicates-v1',
+  MIGRATED_DUPLICATES_V2: 'migrated:duplicates-v2'
 };
 
 // ---------- SEED DATA ----------
@@ -154,6 +155,16 @@ const CONFIRMED_DUPLICATE_IDS = [
   'flex-bisolator','strive-pl-preacher','bodymasters-selectorised-bicep','lf-cable-crossover',
   'lf-mj8-jungle','cybex-bravo','cybex-v2-smith','naut-smith','naut-nitro-ab-crunch',
   'wbak-145', 'hoist-star-pulldown-tdm2', 'wbak-222', 'unity-lichfield-ref256-2'
+];
+
+// Second batch found in the full duplicate sweep -- same pattern (same brand/
+// location, cost matching exactly or within the usual rounding), confirmed by
+// Liam. A separate list/migration since MIGRATED_DUPLICATES_V1 already ran on
+// devices synced before this batch was found.
+const CONFIRMED_DUPLICATE_IDS_V2 = [
+  'tdm-atlantis-p443-incline', 'tdm-atlantis-e449-shoulder', 'tdm-atlantis-c212-pendulum',
+  'tdm-flex-classic-incline', 'tdm-flex-deltoid-raise-black', 'tdm-cybex-classic-lateral',
+  'tdm-paramount-rotary-chest', 'tdm-concept2-rower'
 ];
 
 const SEED_EQUIPMENT_BASE = [
@@ -228,22 +239,14 @@ const SEED_EQUIPMENT_BASE = [
   { id: "elite-fts-monolift", name: "Elite FTS Monolift", brand: "Elite FTS", category: "Powerlifting", subcategory: "Racks", tdmRef: "41", cost: 4000, marketValue: 4000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Somerset" },
   { id: "cybex-v1-smith", name: "Cybex V1 Smith Machine", brand: "Cybex", category: "Powerlifting", subcategory: "Racks", tdmRef: "202", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Complete", deliveryDate: "2026-07-17", returnDate: "2026-07-24" },
   { id: "atlantis-ab-crunch", name: "Atlantis Ab Crunch", brand: "Atlantis", category: "Other", subcategory: "Other", tdmRef: "359", cost: 2250, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", refurbStage: "Landed" },
-  { id: "tdm-flex-classic-incline", name: "Flex Fitness Classic Incline Press", brand: "Flex Fitness", category: "Chest", subcategory: "Presses", cost: 3000, marketValue: 0, currentLocation: "WBAK HQ", destination: "For Sale", status: "In Use", notes: "Bought from Paul, paid in cash" },
-  { id: "tdm-paramount-rotary-chest", name: "Paramount Rotary Chest Press", brand: "Paramount", category: "Chest", subcategory: "Presses", cost: 1550, marketValue: 0, currentLocation: "WBAK HQ", destination: "For Sale", status: "In Use", notes: "Bought from Gainz, paid in cash" },
-  { id: "tdm-flex-deltoid-raise-black", name: "Flex Fitness Deltoid Raise (black)", brand: "Flex Fitness", category: "Shoulders", subcategory: "Laterals", cost: 2900, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", notes: "Bought from Paul, paid via transfer" },
   { id: "tdm-bull-strong-belt-squat", name: "Bull Strong Belt Squat", brand: "Bull Strong", category: "Legs", subcategory: "Compounds", tdmRef: "215", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", notes: "Acquired from Bull Strong, no fee" },
   { id: "tdm-rogue-platform", name: "Rogue Deadlift Platform + 12 Mats", brand: "Rogue", category: "Powerlifting", subcategory: "Platforms", tdmRef: "210", cost: 1100, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-lf-preacher-curl", name: "Life Fitness Preacher Curl", brand: "Life Fitness", category: "Arms", subcategory: "Biceps", tdmRef: "217", cost: 1140, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-naut-nitro-v-tri", name: "Nautilus Nitro V-Triceps Extension", brand: "Nautilus", category: "Arms", subcategory: "Triceps", tdmRef: "218", cost: 1700, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", notes: "Bought from Paul, paid in cash" },
-  { id: "tdm-cybex-classic-lateral", name: "Cybex Classic Lateral Raise", brand: "Cybex", category: "Shoulders", subcategory: "Laterals", cost: 2200, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2026-06-05", seller: "George" },
   { id: "tdm-cybex-eagle-abdominal", name: "Cybex Eagle Abdominal", brand: "Cybex", category: "Other", subcategory: "Other", cost: 0, marketValue: 0, currentLocation: "WBAK HQ", destination: "For Sale", status: "In Use" },
-  { id: "tdm-atlantis-p443-incline", name: "Atlantis P443 Power Series Converging Incline", brand: "Atlantis", category: "Chest", subcategory: "Presses", cost: 4750, marketValue: 5000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2025-09-01", seller: "George" },
-  { id: "tdm-atlantis-e449-shoulder", name: "Atlantis E449 Power Series Converging Shoulder", brand: "Atlantis", category: "Shoulders", subcategory: "Presses", cost: 4750, marketValue: 5000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2025-09-01", seller: "George" },
-  { id: "tdm-atlantis-c212-pendulum", name: "Atlantis C212 Power Series Pendulum Squat", brand: "Atlantis", category: "Legs", subcategory: "Compounds", cost: 7000, marketValue: 7500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2025-09-01", seller: "George" },
   { id: "tdm-sportkraft-deadlift-bar", name: "Sportkraft Deadlifter Bar", brand: "Sportkraft", category: "Powerlifting", subcategory: "Bars", tdmRef: "285", cost: 371, marketValue: 300, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Kalle Rasenen" },
   { id: "tdm-aoa-deadlift-bar", name: "AOA Deadlift Bar (British 2019)", brand: "AOA", category: "Powerlifting", subcategory: "Bars", tdmRef: "292", cost: 150, marketValue: 250, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Dan Davies" },
   { id: "tdm-texas-deadlift-bar", name: "Texas Deadlift Bar", brand: "Texas", category: "Powerlifting", subcategory: "Bars", tdmRef: "80", cost: 491, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
-  { id: "tdm-concept2-rower", name: "Concept2 Rower", brand: "Concept2", category: "Cardio", subcategory: "Rower", cost: 800, marketValue: 1000, currentLocation: "WBAK HQ", destination: "For Sale", status: "In Use", arrivalDate: "2026-06-10", seller: "Kirk" },
   { id: "tdm-lf-powermill", name: "Life Fitness Powermill Climber", brand: "Life Fitness", category: "Cardio", subcategory: "Stair", tdmRef: "318", cost: 1700, marketValue: 3000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", arrivalDate: "2026-06-05", seller: "Elahi" },
   { id: "unity-burton-ref167", name: "Flex Fitness Incline Press", brand: "Flex Fitness", category: "Chest", subcategory: "Presses", tdmRef: "167", cost: 0, marketValue: 4000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
   { id: "unity-burton-ref643", name: "Nautilus One Chest Press", brand: "Nautilus", category: "Chest", subcategory: "Presses", tdmRef: "643", cost: 0, marketValue: 1000, currentLocation: "Unity Burton", destination: "Unity Burton", status: "In Use" },
@@ -1049,7 +1052,7 @@ export default function App() {
   }, []);
 
   async function load() {
-    const [e, s, v, seeded, migratedRefurb, migratedUnityRoster, migratedTdmRef, migratedDuplicates] = await Promise.all([
+    const [e, s, v, seeded, migratedRefurb, migratedUnityRoster, migratedTdmRef, migratedDuplicates, migratedDuplicatesV2] = await Promise.all([
       loadKey(K.EQUIP, []),
       loadKey(K.SALES, []),
       loadKey(K.VANRUNS, []),
@@ -1057,7 +1060,8 @@ export default function App() {
       loadKey(K.MIGRATED_REFURB_V1, false),
       loadKey(K.MIGRATED_UNITY_ROSTER_V1, false),
       loadKey(K.MIGRATED_TDMREF_V1, false),
-      loadKey(K.MIGRATED_DUPLICATES_V1, false)
+      loadKey(K.MIGRATED_DUPLICATES_V1, false),
+      loadKey(K.MIGRATED_DUPLICATES_V2, false)
     ]);
     let eq = e, sl = s, vr = v;
     if (!seeded) {
@@ -1140,6 +1144,16 @@ export default function App() {
         await saveKey(K.EQUIP, eq);
       }
       await saveKey(K.MIGRATED_DUPLICATES_V1, true);
+    }
+    if (!migratedDuplicatesV2) {
+      // Second batch of confirmed duplicates found in the full sweep.
+      const before = eq.length;
+      const migratedEq = eq.filter(item => !CONFIRMED_DUPLICATE_IDS_V2.includes(item.id));
+      if (migratedEq.length !== before) {
+        eq = migratedEq;
+        await saveKey(K.EQUIP, eq);
+      }
+      await saveKey(K.MIGRATED_DUPLICATES_V2, true);
     }
     setEquipment(eq); setSales(sl); setVanRuns(vr); setLoaded(true);
   }
