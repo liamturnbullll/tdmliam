@@ -714,7 +714,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "flex-bisolator-tdm2", name: "Flex Fitness Bisolator", brand: "Flex Fitness", category: "Arms", subcategory: "Biceps", tdmRef: "170", cost: 4000, marketValue: 10000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use", seller: "Tokyo" },
 
   // ===== TDM GYM SEPT 2026 FULL ASSET ROSTER — NEW ITEMS (no prior record) =====
-  { id: "tdm-gym-259", name: "Nautilus Leverage Chest Press", brand: "Nautilus", category: "Other", tdmRef: "254", cost: 2900, marketValue: 3200, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
+  { id: "tdm-gym-259", name: "Nautilus Leverage Chest Press", brand: "Nautilus", category: "Other", tdmRef: "259", cost: 2900, marketValue: 3200, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-383", name: "Nautilus Pec Fly", brand: "Nautilus", category: "Other", tdmRef: "383", cost: 2900, marketValue: 3250, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-267", name: "Cybex Eagle Kneeling Lateral", brand: "Cybex", category: "Other", tdmRef: "267", cost: 3000, marketValue: 4000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-374", name: "Bodymasters Pulldown", brand: "Bodymasters", category: "Other", tdmRef: "374", cost: 750, marketValue: 1500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
@@ -728,7 +728,7 @@ const SEED_EQUIPMENT_BASE = [
   { id: "tdm-gym-386", name: "Atlantis Hack Squat", brand: "Atlantis", category: "Other", tdmRef: "386", cost: 4000, marketValue: 7500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-397", name: "Star Trac Hamtractor", brand: "Star Trac", category: "Other", tdmRef: "397", cost: 4800, marketValue: 8000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-381", name: "MedX Leg Curl", brand: "MedX", category: "Other", tdmRef: "381", cost: 2000, marketValue: 3500, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
-  { id: "tdm-gym-46", name: "Cybex 750C Bike", brand: "Cybex", category: "Other", tdmRef: "296", cost: 600, marketValue: 1000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
+  { id: "tdm-gym-46", name: "Cybex 750C Bike", brand: "Cybex", category: "Other", tdmRef: "46", cost: 600, marketValue: 1000, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-401", name: "Matrix Stairmaster", brand: "Matrix", category: "Other", tdmRef: "401", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-402", name: "Matrix Stairmaster", brand: "Matrix", category: "Other", tdmRef: "402", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
   { id: "tdm-gym-192", name: "Life Fitness Dip Pull Up", brand: "Life Fitness", category: "Other", tdmRef: "192", cost: 0, marketValue: 0, currentLocation: "TDM Gym", destination: "TDM Gym", status: "In Use" },
