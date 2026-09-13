@@ -47,6 +47,16 @@ const DESTINATIONS = [
 // sitting at WBAK, not a location it can be marked "landed" at.
 const GYM_DESTINATIONS = DESTINATIONS.filter(d => d !== 'For Sale' && d !== 'Undecided' && d !== 'Unity 5');
 
+// Simple 7-way view of "where is it": each of the 5 gyms, WBAK (everything not yet
+// placed at a gym -- HQ, at a refurbisher, incoming, for sale, undecided), or Unity 5
+// (syphoned-off stock earmarked for the new site). Every item falls into exactly one.
+const LOCATION_BUCKETS = ['TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth', 'WBAK', 'Unity 5'];
+function getLocationBucket(e) {
+  if (GYM_DESTINATIONS.includes(e.currentLocation)) return e.currentLocation;
+  if (e.destination === 'Unity 5') return 'Unity 5';
+  return 'WBAK';
+}
+
 const STATUSES = [
   'Incoming', 'At HQ', 'In Refurb', 'Ready to Deploy', 'In Use', 'Listed for Sale', 'Sold'
 ];
@@ -1091,9 +1101,6 @@ export default function App() {
   const [filterLocations, setFilterLocations] = useState([]);
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterBrands, setFilterBrands] = useState([]);
-  const [filterMachineTypes, setFilterMachineTypes] = useState([]);
-  const [filterStatuses, setFilterStatuses] = useState([]);
-  const [filterDestinations, setFilterDestinations] = useState([]);
 
   // Load on mount
   useEffect(() => { load(); }, []);
@@ -1238,17 +1245,14 @@ export default function App() {
     const q = search.trim().toLowerCase();
     return equipment.filter(e => {
       if (q && !(`${e.name} ${e.brand} ${e.notes} ${e.seller} ${e.tdmRef}`.toLowerCase().includes(q))) return false;
-      if (filterLocations.length && !filterLocations.includes(e.currentLocation)) return false;
+      if (filterLocations.length && !filterLocations.includes(getLocationBucket(e))) return false;
       if (filterCategories.length && !filterCategories.includes(e.category)) return false;
       if (filterBrands.length && !filterBrands.includes(e.brand)) return false;
-      if (filterMachineTypes.length && !filterMachineTypes.includes(e.machineType)) return false;
-      if (filterStatuses.length && !filterStatuses.includes(e.status)) return false;
-      if (filterDestinations.length && !filterDestinations.includes(e.destination)) return false;
       return true;
     });
-  }, [equipment, search, filterLocations, filterCategories, filterBrands, filterMachineTypes, filterStatuses, filterDestinations]);
+  }, [equipment, search, filterLocations, filterCategories, filterBrands]);
 
-  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length + filterMachineTypes.length + filterStatuses.length + filterDestinations.length > 0 || search.length > 0;
+  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length > 0 || search.length > 0;
 
   if (!loaded) {
     return (
@@ -1261,7 +1265,6 @@ export default function App() {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'inventory', label: 'Inventory', icon: Boxes },
-    { id: 'refurb', label: 'Refurb', icon: Wrench },
     { id: 'van', label: 'Van Schedule', icon: Truck },
     { id: 'sales', label: 'Sales', icon: ShoppingCart },
     { id: 'purchases', label: 'Purchases', icon: PoundSterling }
@@ -1318,13 +1321,7 @@ export default function App() {
             filterLocations={filterLocations} setFilterLocations={setFilterLocations}
             filterCategories={filterCategories} setFilterCategories={setFilterCategories}
             filterBrands={filterBrands} setFilterBrands={setFilterBrands}
-            filterMachineTypes={filterMachineTypes} setFilterMachineTypes={setFilterMachineTypes}
-            filterStatuses={filterStatuses} setFilterStatuses={setFilterStatuses}
-            filterDestinations={filterDestinations} setFilterDestinations={setFilterDestinations}
             onSelect={setSelectedItem} onAdd={() => setShowAddItem(true)} />
-        )}
-        {tab === 'refurb' && (
-          <RefurbTab equipment={equipment} onSelect={setSelectedItem} />
         )}
         {tab === 'van' && (
           <VanTab vanRuns={vanRuns}
@@ -1392,26 +1389,19 @@ function OverviewTab({ equipment, setTab }) {
     const owned = equipment.filter(e => e.status !== 'Sold');
     const totalValue = owned.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0);
 
-    const GYMS = ['TDM Gym', 'Unity Lichfield', 'Unity Fradley', 'Unity Burton', 'Unity Tamworth'];
     // Every owned item lands in exactly one bucket, so the breakdown always sums to the total.
-    const bucketOf = (e) => {
-      if (GYMS.includes(e.currentLocation)) return e.currentLocation;
-      if (e.destination === 'Unity 5') return 'Unity 5';
-      return 'WBAK';
-    };
     const buckets = {};
-    [...GYMS, 'WBAK', 'Unity 5'].forEach(b => buckets[b] = { count: 0, value: 0 });
+    LOCATION_BUCKETS.forEach(b => buckets[b] = { count: 0, value: 0 });
     owned.forEach(e => {
-      const b = buckets[bucketOf(e)];
+      const b = buckets[getLocationBucket(e)];
       b.count++;
       b.value += e.marketValue || e.cost || 0;
     });
 
-    const breakdown = [
-      ...GYMS.map(g => ({ label: g, ...buckets[g] })),
-      { label: 'WBAK (We Buy Any Kit)', ...buckets['WBAK'] },
-      { label: 'Unity 5', ...buckets['Unity 5'] },
-    ];
+    const breakdown = LOCATION_BUCKETS.map(b => ({
+      label: b === 'WBAK' ? 'WBAK (We Buy Any Kit)' : b,
+      ...buckets[b]
+    }));
 
     return { totalValue, breakdown };
   }, [equipment]);
@@ -1454,16 +1444,13 @@ function InventoryTab({
   filterLocations, setFilterLocations,
   filterCategories, setFilterCategories,
   filterBrands, setFilterBrands,
-  filterMachineTypes, setFilterMachineTypes,
-  filterStatuses, setFilterStatuses,
-  filterDestinations, setFilterDestinations,
   onSelect, onAdd
 }) {
   const [view, setView] = useState('grid');
 
   const clearAll = () => {
     setSearch(''); setFilterLocations([]); setFilterCategories([]);
-    setFilterBrands([]); setFilterMachineTypes([]); setFilterStatuses([]); setFilterDestinations([]);
+    setFilterBrands([]);
   };
 
   return (
@@ -1488,12 +1475,9 @@ function InventoryTab({
 
       {/* Filter Dropdowns */}
       <div className="flex items-center gap-2 flex-wrap">
-        <FilterDropdown label="Location" options={LOCATIONS} selected={filterLocations} onChange={setFilterLocations} />
+        <FilterDropdown label="Location" options={LOCATION_BUCKETS} selected={filterLocations} onChange={setFilterLocations} />
         <FilterDropdown label="Body Part" options={CATEGORIES} selected={filterCategories} onChange={setFilterCategories} />
         <FilterDropdown label="Brand" options={allBrands} selected={filterBrands} onChange={setFilterBrands} scrollable />
-        <FilterDropdown label="Machine Type" options={MACHINE_TYPES} selected={filterMachineTypes} onChange={setFilterMachineTypes} />
-        <FilterDropdown label="Status" options={STATUSES} selected={filterStatuses} onChange={setFilterStatuses} />
-        <FilterDropdown label="Going to" options={DESTINATIONS} selected={filterDestinations} onChange={setFilterDestinations} />
         {hasActiveFilters && (
           <button onClick={clearAll} className="text-xs text-[#B8C0B1] hover:text-amber-400 flex items-center gap-1">
             <X size={11} /> Clear filters
@@ -1644,18 +1628,6 @@ function RefurbStageBadge({ stage }) {
   return <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${c.bg} ${c.text} ${c.border} border whitespace-nowrap`}>{stage}</span>;
 }
 
-// ================ REFURB PIPELINE ================
-
-const REFURBISHER_LOCATIONS = ['At Craigs', 'At Nytram', 'At JP', 'Other Refurbisher'];
-
-function isInRefurbWorkflow(e) {
-  // Physically at a refurbisher — regardless of ownership status
-  if (REFURBISHER_LOCATIONS.includes(e.currentLocation)) return true;
-  // At WBAK HQ and has a refurb stage set — actively being worked on
-  if (e.currentLocation === 'WBAK HQ' && e.refurbStage && e.status !== 'Ready to Deploy') return true;
-  return false;
-}
-
 // ================ ITEM JOURNEY ================
 // Every machine's life follows: Arrived at HQ -> (optional) Refurb -> either
 // Direct Sale or Keeping at a gym -> outcome. Derived entirely from the item's
@@ -1759,112 +1731,6 @@ function ItemJourney({ item }) {
         })}
       </div>
     </Section>
-  );
-}
-
-function RefurbTab({ equipment, onSelect }) {
-  const [groupBy, setGroupBy] = useState('stage');
-
-  const inRefurb = equipment.filter(isInRefurbWorkflow);
-
-  const grouped = useMemo(() => {
-    const g = {};
-    if (groupBy === 'stage') {
-      REFURB_STAGES.forEach(s => g[s] = []);
-      inRefurb.forEach(e => {
-        const s = e.refurbStage || 'Landed';
-        if (!g[s]) g[s] = [];
-        g[s].push(e);
-      });
-    } else if (groupBy === 'refurbisher') {
-      REFURBISHERS.forEach(r => g[r] = []);
-      inRefurb.forEach(e => {
-        const r = e.refurbisher || 'Awaiting Dispatch';
-        if (!g[r]) g[r] = [];
-        g[r].push(e);
-      });
-    }
-    return g;
-  }, [inRefurb, groupBy]);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-lg font-semibold">Refurb Workflow</div>
-          <div className="text-xs text-[#96A093] mt-0.5">{inRefurb.length} machines physically at refurbishers or awaiting dispatch — includes gym-bound items</div>
-        </div>
-        <div className="flex bg-[#3F4D3E] border border-[#3D4A3B] rounded-lg p-0.5">
-          <button onClick={() => setGroupBy('stage')} className={`px-3 py-1.5 rounded text-xs ${groupBy === 'stage' ? 'bg-[#5D6E5C] text-[#F5F5F0]' : 'text-[#96A093]'}`}>By Stage</button>
-          <button onClick={() => setGroupBy('refurbisher')} className={`px-3 py-1.5 rounded text-xs ${groupBy === 'refurbisher' ? 'bg-[#5D6E5C] text-[#F5F5F0]' : 'text-[#96A093]'}`}>By Refurbisher</button>
-        </div>
-      </div>
-
-      {groupBy === 'stage' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-          {REFURB_STAGES.map(stage => {
-            const items = grouped[stage] || [];
-            const c = REFURB_STAGE_COLORS[stage];
-            return (
-              <div key={stage} className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl">
-                <div className={`px-3 py-2.5 border-b border-[#3D4A3B] flex items-center justify-between`}>
-                  <div className={`text-xs uppercase tracking-wider font-medium ${c.text}`}>{stage}</div>
-                  <div className="text-xs font-mono text-[#B8C0B1]">{items.length}</div>
-                </div>
-                <div className="p-2 space-y-1.5 max-h-[70vh] overflow-y-auto">
-                  {items.length === 0 && <div className="text-xs text-[#7A867A] text-center py-4">—</div>}
-                  {items.map(item => (
-                    <button key={item.id} onClick={() => onSelect(item)}
-                      className="w-full text-left bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg p-2.5 hover:border-[#8FA087] transition group">
-                      <div className="text-xs font-medium text-[#EAEEE5] line-clamp-2 group-hover:text-amber-400">{item.name}</div>
-                      <div className="text-[10px] text-[#96A093] mt-1 flex items-center gap-1">
-                        <MapPin size={9} /> {item.currentLocation}
-                      </div>
-                      <div className="text-[10px] text-[#B8C0B1] mt-0.5">→ {item.destination}</div>
-                      {item.returnDate && (
-                        <div className="text-[10px] text-amber-500/80 mt-1 font-mono">
-                          Back: {fmtDate(item.returnDate)}
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {REFURBISHERS.map(refurbisher => {
-            const items = grouped[refurbisher] || [];
-            if (items.length === 0) return null;
-            return (
-              <div key={refurbisher} className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl">
-                <div className="px-3 py-2.5 border-b border-[#3D4A3B] flex items-center justify-between">
-                  <div className="text-xs uppercase tracking-wider font-medium text-[#DBE0D6]">{refurbisher}</div>
-                  <div className="text-xs font-mono text-[#B8C0B1]">{items.length}</div>
-                </div>
-                <div className="p-2 space-y-1.5 max-h-[70vh] overflow-y-auto">
-                  {items.map(item => (
-                    <button key={item.id} onClick={() => onSelect(item)}
-                      className="w-full text-left bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg p-2.5 hover:border-[#8FA087] transition group">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="text-xs font-medium text-[#EAEEE5] line-clamp-2 group-hover:text-amber-400 flex-1">{item.name}</div>
-                        <RefurbStageBadge stage={item.refurbStage} />
-                      </div>
-                      <div className="text-[10px] text-[#96A093] mt-1">→ {item.destination}</div>
-                      {item.returnDate && (
-                        <div className="text-[10px] text-amber-500/80 mt-1 font-mono">Back: {fmtDate(item.returnDate)}</div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
   );
 }
 
