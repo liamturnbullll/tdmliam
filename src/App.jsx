@@ -1403,7 +1403,7 @@ function OverviewTab({ equipment, setTab }) {
     const breakdown = [
       ...GYMS.map(g => ({ label: g, ...buckets[g] })),
       { label: 'WBAK (We Buy Any Kit)', ...buckets['WBAK'] },
-      { label: 'Syphoned Off — Unity 5', ...buckets['Unity 5'] },
+      { label: 'Unity 5', ...buckets['Unity 5'] },
     ];
 
     return { totalValue, breakdown };
