@@ -1410,11 +1410,51 @@ function OverviewTab({ equipment, setTab }) {
 
   const maxValue = Math.max(...stats.breakdown.map(b => b.value), 1);
 
+  const exportCSV = () => {
+    const esc = (v) => {
+      const s = String(v ?? '');
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const row = (arr) => arr.map(esc).join(',') + '\r\n';
+
+    const owned = equipment.filter(e => e.status !== 'Sold');
+    const byBucket = {};
+    LOCATION_BUCKETS.forEach(b => byBucket[b] = []);
+    owned.forEach(e => byBucket[getLocationBucket(e)].push(e));
+
+    let csv = row(['Location', 'TDM Ref', 'Name', 'Brand', 'Category', 'Subcategory', 'Cost', 'Market Value', 'Status']);
+    LOCATION_BUCKETS.forEach(bucket => {
+      const items = byBucket[bucket].slice().sort((a, b) => a.name.localeCompare(b.name));
+      const label = bucket === 'WBAK' ? 'WBAK (We Buy Any Kit)' : bucket;
+      items.forEach(e => {
+        csv += row([label, e.tdmRef || '', e.name, e.brand, e.category, e.subcategory || '', e.cost || 0, e.marketValue || 0, e.status]);
+      });
+      const subtotal = items.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0);
+      csv += row([`${label} subtotal`, '', '', '', '', '', '', subtotal, `${items.length} items`]);
+      csv += row([]);
+    });
+    csv += row(['TOTAL', '', '', '', '', '', '', stats.totalValue, `${owned.length} items`]);
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `TDM Equipment Hub - Valuation - ${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-4">
       <div className="text-center">
         <div className="text-[11px] uppercase tracking-wider text-amber-300/80 mb-2">Total Kit Valuation</div>
         <div className="text-5xl font-semibold text-[#F5F5F0]">{gbp(stats.totalValue)}</div>
+        <button onClick={exportCSV}
+          className="mt-4 inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-[#3F4D3E] border border-[#3D4A3B] hover:border-amber-500/50 text-[#DBE0D6] hover:text-amber-400 transition">
+          <Download size={12} /> Export CSV
+        </button>
       </div>
 
       <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl divide-y divide-[#3D4A3B] overflow-hidden">
