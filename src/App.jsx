@@ -90,7 +90,8 @@ const K = {
   IMG: (id) => `img:v1:${id}`,
   SEEDED: 'seeded:v1',
   MIGRATED_REFURB_V1: 'migrated:refurb-v1',
-  MIGRATED_UNITY_ROSTER_V1: 'migrated:unity-roster-v1'
+  MIGRATED_UNITY_ROSTER_V1: 'migrated:unity-roster-v1',
+  MIGRATED_TDMREF_V1: 'migrated:tdmref-v1'
 };
 
 // ---------- SEED DATA ----------
@@ -1101,6 +1102,7 @@ export default function App() {
   const [filterLocations, setFilterLocations] = useState([]);
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterBrands, setFilterBrands] = useState([]);
+  const [filterNoRef, setFilterNoRef] = useState(false);
 
   // Load on mount
   useEffect(() => { load(); }, []);
@@ -1117,13 +1119,14 @@ export default function App() {
   }, []);
 
   async function load() {
-    const [e, s, v, seeded, migratedRefurb, migratedUnityRoster] = await Promise.all([
+    const [e, s, v, seeded, migratedRefurb, migratedUnityRoster, migratedTdmRef] = await Promise.all([
       loadKey(K.EQUIP, []),
       loadKey(K.SALES, []),
       loadKey(K.VANRUNS, []),
       loadKey(K.SEEDED, false),
       loadKey(K.MIGRATED_REFURB_V1, false),
-      loadKey(K.MIGRATED_UNITY_ROSTER_V1, false)
+      loadKey(K.MIGRATED_UNITY_ROSTER_V1, false),
+      loadKey(K.MIGRATED_TDMREF_V1, false)
     ]);
     let eq = e, sl = s, vr = v;
     if (!seeded) {
@@ -1155,6 +1158,26 @@ export default function App() {
         await saveKey(K.EQUIP, eq);
       }
       await saveKey(K.MIGRATED_UNITY_ROSTER_V1, true);
+    }
+    if (!migratedTdmRef) {
+      // Backfill: mergeSeed() only adds brand-new ids, so a TDM ref assigned
+      // (or corrected) in the seed script after an item was already synced to
+      // this device's live store never actually reached it. Fill in any live
+      // record's missing ref from the current seed, once -- never touches a
+      // ref that's already on record, so nothing anyone entered is at risk.
+      const seedById = Object.fromEntries(SEED_EQUIPMENT.map(i => [i.id, i]));
+      let changed = 0;
+      const migratedEq = eq.map(item => {
+        if (item.tdmRef) return item;
+        const match = seedById[item.id];
+        if (match && match.tdmRef) { changed++; return { ...item, tdmRef: match.tdmRef, updatedAt: Date.now() }; }
+        return item;
+      });
+      if (changed > 0) {
+        eq = migratedEq;
+        await saveKey(K.EQUIP, eq);
+      }
+      await saveKey(K.MIGRATED_TDMREF_V1, true);
     }
     setEquipment(eq); setSales(sl); setVanRuns(vr); setLoaded(true);
   }
@@ -1248,11 +1271,13 @@ export default function App() {
       if (filterLocations.length && !filterLocations.includes(getLocationBucket(e))) return false;
       if (filterCategories.length && !filterCategories.includes(e.category)) return false;
       if (filterBrands.length && !filterBrands.includes(e.brand)) return false;
+      if (filterNoRef && e.tdmRef) return false;
       return true;
     });
-  }, [equipment, search, filterLocations, filterCategories, filterBrands]);
+  }, [equipment, search, filterLocations, filterCategories, filterBrands, filterNoRef]);
 
-  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length > 0 || search.length > 0;
+  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length > 0 || search.length > 0 || filterNoRef;
+  const noRefCount = useMemo(() => equipment.filter(e => !e.tdmRef).length, [equipment]);
 
   if (!loaded) {
     return (
@@ -1321,6 +1346,7 @@ export default function App() {
             filterLocations={filterLocations} setFilterLocations={setFilterLocations}
             filterCategories={filterCategories} setFilterCategories={setFilterCategories}
             filterBrands={filterBrands} setFilterBrands={setFilterBrands}
+            filterNoRef={filterNoRef} setFilterNoRef={setFilterNoRef} noRefCount={noRefCount}
             onSelect={setSelectedItem} onAdd={() => setShowAddItem(true)} />
         )}
         {tab === 'van' && (
@@ -1444,13 +1470,14 @@ function InventoryTab({
   filterLocations, setFilterLocations,
   filterCategories, setFilterCategories,
   filterBrands, setFilterBrands,
+  filterNoRef, setFilterNoRef, noRefCount,
   onSelect, onAdd
 }) {
   const [view, setView] = useState('grid');
 
   const clearAll = () => {
     setSearch(''); setFilterLocations([]); setFilterCategories([]);
-    setFilterBrands([]);
+    setFilterBrands([]); setFilterNoRef(false);
   };
 
   return (
@@ -1478,6 +1505,10 @@ function InventoryTab({
         <FilterDropdown label="Location" options={LOCATION_BUCKETS} selected={filterLocations} onChange={setFilterLocations} />
         <FilterDropdown label="Body Part" options={CATEGORIES} selected={filterCategories} onChange={setFilterCategories} />
         <FilterDropdown label="Brand" options={allBrands} selected={filterBrands} onChange={setFilterBrands} scrollable />
+        <button onClick={() => setFilterNoRef(v => !v)}
+          className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition ${filterNoRef ? 'bg-red-500/15 border-red-500/40 text-red-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+          <AlertCircle size={12} /> No TDM Ref ({noRefCount})
+        </button>
         {hasActiveFilters && (
           <button onClick={clearAll} className="text-xs text-[#B8C0B1] hover:text-amber-400 flex items-center gap-1">
             <X size={11} /> Clear filters
@@ -1564,7 +1595,13 @@ function ItemCard({ item, onClick }) {
         {item.refurbStage && item.status === 'In Refurb' && (
           <RefurbStageBadge stage={item.refurbStage} />
         )}
-        {item.tdmRef && <span className="text-[10px] font-mono text-[#7A867A]">#{item.tdmRef}</span>}
+        {item.tdmRef ? (
+          <span className="text-[10px] font-mono text-[#7A867A]">#{item.tdmRef}</span>
+        ) : (
+          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30 flex items-center gap-1">
+            <AlertCircle size={9} /> No Ref
+          </span>
+        )}
       </div>
       <div className="text-sm font-medium text-[#F5F5F0] mb-1 line-clamp-2 group-hover:text-amber-400 transition">{item.name}</div>
       <div className="text-xs text-[#96A093] mb-3">{item.brand}  ·  {item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}{item.machineType ? `  ·  ${item.machineType}` : ''}</div>
@@ -1591,6 +1628,7 @@ function ItemTable({ items, onSelect }) {
         <table className="w-full text-sm">
           <thead className="bg-[#4C5C4A] border-b border-[#3D4A3B] text-xs uppercase tracking-wider text-[#96A093]">
             <tr>
+              <th className="text-left px-3 py-2.5 font-medium">TDM Ref</th>
               <th className="text-left px-3 py-2.5 font-medium">Name</th>
               <th className="text-left px-3 py-2.5 font-medium">Brand</th>
               <th className="text-left px-3 py-2.5 font-medium">Category</th>
@@ -1608,6 +1646,13 @@ function ItemTable({ items, onSelect }) {
               return (
                 <tr key={item.id} onClick={() => onSelect(item)}
                   className="border-b border-[#3D4A3B] last:border-b-0 hover:bg-[#5D6E5C]/40 cursor-pointer">
+                  <td className="px-3 py-2 font-mono text-xs">
+                    {item.tdmRef ? (
+                      <span className="text-[#DBE0D6]">#{item.tdmRef}</span>
+                    ) : (
+                      <span className="uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30 whitespace-nowrap">No Ref</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2 text-[#F5F5F0]">{item.name}</td>
                   <td className="px-3 py-2 text-[#DBE0D6]">{item.brand}</td>
                   <td className="px-3 py-2 text-[#B8C0B1] text-xs">{item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}</td>
