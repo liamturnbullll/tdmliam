@@ -957,8 +957,8 @@ const daysUntil = (s) => {
   const diff = Math.ceil((d - new Date()) / (1000 * 60 * 60 * 24));
   return diff;
 };
-// How long we've held a piece of kit, based on its order date.
-const timeOwned = (s) => {
+// Whole calendar months between an order date and now, based on its order date.
+const monthsOwned = (s) => {
   if (!s) return null;
   const d = new Date(s);
   if (isNaN(d)) return null;
@@ -966,6 +966,12 @@ const timeOwned = (s) => {
   let months = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
   if (now.getDate() < d.getDate()) months--;
   if (months < 0) return null;
+  return months;
+};
+// How long we've held a piece of kit, based on its order date.
+const timeOwned = (s) => {
+  const months = monthsOwned(s);
+  if (months === null) return null;
   const years = Math.floor(months / 12);
   const remMonths = months % 12;
   if (months < 1) return 'Less than a month';
@@ -1468,18 +1474,18 @@ function OverviewTab({ equipment, setTab }) {
     LOCATION_BUCKETS.forEach(b => byBucket[b] = []);
     owned.forEach(e => byBucket[getLocationBucket(e)].push(e));
 
-    let csv = row(['Location', 'TDM Ref', 'Name', 'Brand', 'Category', 'Subcategory', 'Cost', 'Market Value', 'Status']);
+    let csv = row(['Location', 'TDM Ref', 'Name', 'Brand', 'Category', 'Subcategory', 'Cost', 'Market Value', 'Date of Purchase', 'Months Owned', 'Status']);
     LOCATION_BUCKETS.forEach(bucket => {
       const items = byBucket[bucket].slice().sort((a, b) => a.name.localeCompare(b.name));
       const label = bucket === 'WBAK' ? 'WBAK (We Buy Any Kit)' : bucket;
       items.forEach(e => {
-        csv += row([label, e.tdmRef || '', e.name, e.brand, e.category, e.subcategory || '', e.cost || 0, e.marketValue || 0, e.status]);
+        csv += row([label, e.tdmRef || '', e.name, e.brand, e.category, e.subcategory || '', e.cost || 0, e.marketValue || 0, e.orderDate || '', monthsOwned(e.orderDate) ?? '', e.status]);
       });
       const subtotal = items.reduce((n, e) => n + (e.marketValue || e.cost || 0), 0);
-      csv += row([`${label} subtotal`, '', '', '', '', '', '', subtotal, `${items.length} items`]);
+      csv += row([`${label} subtotal`, '', '', '', '', '', '', subtotal, '', '', `${items.length} items`]);
       csv += row([]);
     });
-    csv += row(['TOTAL', '', '', '', '', '', '', stats.totalValue, `${owned.length} items`]);
+    csv += row(['TOTAL', '', '', '', '', '', '', stats.totalValue, '', '', `${owned.length} items`]);
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
