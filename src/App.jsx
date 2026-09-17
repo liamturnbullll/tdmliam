@@ -1246,48 +1246,67 @@ export default function App() {
     showToast(added ? `Synced — ${added} new item${added > 1 ? 's' : ''} added` : 'Already up to date');
   }
 
-  function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2600); }
+  function showToast(msg, isError = false) { setToast({ msg, isError }); setTimeout(() => setToast(null), isError ? 5000 : 2600); }
 
   async function upsertItem(item) {
+    const prev = equipment;
     const updated = { ...item, updatedAt: Date.now() };
     const next = equipment.some(e => e.id === updated.id)
       ? equipment.map(e => e.id === updated.id ? updated : e)
       : [...equipment, { ...updated, addedAt: Date.now() }];
-    setEquipment(next); await saveKey(K.EQUIP, next);
-    showToast('Saved');
+    setEquipment(next);
+    const ok = await saveKey(K.EQUIP, next);
+    if (ok) showToast('Saved');
+    else { setEquipment(prev); showToast("Couldn't save — check your connection and try again", true); }
   }
   async function deleteItem(id) {
+    const prev = equipment;
     const next = equipment.filter(e => e.id !== id);
-    setEquipment(next); await saveKey(K.EQUIP, next);
-    await deleteKey(K.IMG(id));
-    setSelectedItem(null);
-    showToast('Deleted');
+    setEquipment(next);
+    const ok = await saveKey(K.EQUIP, next);
+    if (ok) {
+      await deleteKey(K.IMG(id));
+      setSelectedItem(null);
+      showToast('Deleted');
+    } else { setEquipment(prev); showToast("Couldn't delete — check your connection and try again", true); }
   }
   async function upsertSale(s) {
+    const prev = sales;
     const updated = { ...s, updatedAt: Date.now() };
     const next = sales.some(x => x.id === updated.id)
       ? sales.map(x => x.id === updated.id ? updated : x)
       : [...sales, { ...updated, addedAt: Date.now() }];
-    setSales(next); await saveKey(K.SALES, next);
-    showToast('Sale saved');
+    setSales(next);
+    const ok = await saveKey(K.SALES, next);
+    if (ok) showToast('Sale saved');
+    else { setSales(prev); showToast("Couldn't save sale — check your connection and try again", true); }
   }
   async function deleteSale(id) {
+    const prev = sales;
     const next = sales.filter(x => x.id !== id);
-    setSales(next); await saveKey(K.SALES, next);
-    setSelectedSale(null); showToast('Sale deleted');
+    setSales(next);
+    const ok = await saveKey(K.SALES, next);
+    if (ok) { setSelectedSale(null); showToast('Sale deleted'); }
+    else { setSales(prev); showToast("Couldn't delete sale — check your connection and try again", true); }
   }
   async function upsertRun(r) {
+    const prev = vanRuns;
     const updated = { ...r, updatedAt: Date.now() };
     const next = vanRuns.some(x => x.id === updated.id)
       ? vanRuns.map(x => x.id === updated.id ? updated : x)
       : [...vanRuns, { ...updated, addedAt: Date.now() }];
-    setVanRuns(next); await saveKey(K.VANRUNS, next);
-    showToast('Van run saved');
+    setVanRuns(next);
+    const ok = await saveKey(K.VANRUNS, next);
+    if (ok) showToast('Van run saved');
+    else { setVanRuns(prev); showToast("Couldn't save van run — check your connection and try again", true); }
   }
   async function deleteRun(id) {
+    const prev = vanRuns;
     const next = vanRuns.filter(x => x.id !== id);
-    setVanRuns(next); await saveKey(K.VANRUNS, next);
-    setSelectedRun(null); showToast('Van run deleted');
+    setVanRuns(next);
+    const ok = await saveKey(K.VANRUNS, next);
+    if (ok) { setSelectedRun(null); showToast('Van run deleted'); }
+    else { setVanRuns(prev); showToast("Couldn't delete van run — check your connection and try again", true); }
   }
 
   async function exportAll() {
@@ -1462,8 +1481,9 @@ export default function App() {
           counts={{ equipment: equipment.length, sales: sales.length, vanRuns: vanRuns.length }} />
       )}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-[#3F4D3E] border border-[#8FA087] px-4 py-2.5 rounded-lg text-sm shadow-xl z-50 flex items-center gap-2">
-          <Check size={14} className="text-emerald-400" /> {toast}
+        <div className={`fixed bottom-6 right-6 px-4 py-2.5 rounded-lg text-sm shadow-xl z-50 flex items-center gap-2 border ${toast.isError ? 'bg-red-950/90 border-red-500/50 text-red-100' : 'bg-[#3F4D3E] border-[#8FA087]'}`}>
+          {toast.isError ? <AlertCircle size={14} className="text-red-400 shrink-0" /> : <Check size={14} className="text-emerald-400" />}
+          {toast.msg}
         </div>
       )}
     </div>
