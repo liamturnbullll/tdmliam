@@ -1433,7 +1433,15 @@ export default function App() {
       {showAddItem && (
         <ItemModal item={null} allItems={equipment}
           onClose={() => setShowAddItem(false)}
-          onSave={(x) => { upsertItem(x); setShowAddItem(false); }}
+          onSave={(x) => {
+            upsertItem(x);
+            setShowAddItem(false);
+            // Otherwise whatever filters were active before adding (a location,
+            // body part, or brand that doesn't match this new item) can hide it
+            // from the list it was just added to.
+            setFilterLocations([]); setFilterCategories([]); setFilterBrands([]); setFilterNoRef(false);
+            setSearch(x.name);
+          }}
           onDelete={() => {}} />
       )}
       {showAddSale && (
