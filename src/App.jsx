@@ -104,6 +104,12 @@ const K = {
 
 const mkId = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
+// Next TDM ref for a brand-new item -- one past the highest numeric ref currently in use.
+const nextTdmRef = (items) => {
+  const nums = items.map(i => parseInt(i.tdmRef, 10)).filter(n => !isNaN(n));
+  return String((nums.length ? Math.max(...nums) : 0) + 1);
+};
+
 const seedItem = (o) => ({
   id: o.id,
   name: o.name,
@@ -1074,6 +1080,11 @@ export default function App() {
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterBrands, setFilterBrands] = useState([]);
   const [filterNoRef, setFilterNoRef] = useState(false);
+  const [filterSoldOnly, setFilterSoldOnly] = useState(false);
+  const [costMin, setCostMin] = useState('');
+  const [costMax, setCostMax] = useState('');
+  const [valueMin, setValueMin] = useState('');
+  const [valueMax, setValueMax] = useState('');
 
   // Load on mount
   useEffect(() => { load(); }, []);
@@ -1340,16 +1351,25 @@ export default function App() {
   const filteredEquipment = useMemo(() => {
     const q = search.trim().toLowerCase();
     return equipment.filter(e => {
+      // The Sold toggle switches which set you're looking at, rather than mixing
+      // sold items into the everyday "what do we have" view.
+      if (filterSoldOnly ? e.status !== 'Sold' : e.status === 'Sold') return false;
       if (q && !(`${e.name} ${e.brand} ${e.notes} ${e.seller} ${e.tdmRef}`.toLowerCase().includes(q))) return false;
       if (filterLocations.length && !filterLocations.includes(getLocationBucket(e))) return false;
       if (filterCategories.length && !filterCategories.includes(e.category)) return false;
       if (filterBrands.length && !filterBrands.includes(e.brand)) return false;
       if (filterNoRef && e.tdmRef) return false;
+      if (costMin !== '' && (e.cost || 0) < Number(costMin)) return false;
+      if (costMax !== '' && (e.cost || 0) > Number(costMax)) return false;
+      if (valueMin !== '' && (e.marketValue || 0) < Number(valueMin)) return false;
+      if (valueMax !== '' && (e.marketValue || 0) > Number(valueMax)) return false;
       return true;
     });
-  }, [equipment, search, filterLocations, filterCategories, filterBrands, filterNoRef]);
+  }, [equipment, search, filterLocations, filterCategories, filterBrands, filterNoRef, filterSoldOnly, costMin, costMax, valueMin, valueMax]);
 
-  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length > 0 || search.length > 0 || filterNoRef;
+  const hasActiveFilters = filterLocations.length + filterCategories.length + filterBrands.length > 0 ||
+    search.length > 0 || filterNoRef || filterSoldOnly ||
+    costMin !== '' || costMax !== '' || valueMin !== '' || valueMax !== '';
   const noRefCount = useMemo(() => equipment.filter(e => !e.tdmRef).length, [equipment]);
 
   if (!loaded) {
@@ -1420,6 +1440,9 @@ export default function App() {
             filterCategories={filterCategories} setFilterCategories={setFilterCategories}
             filterBrands={filterBrands} setFilterBrands={setFilterBrands}
             filterNoRef={filterNoRef} setFilterNoRef={setFilterNoRef} noRefCount={noRefCount}
+            filterSoldOnly={filterSoldOnly} setFilterSoldOnly={setFilterSoldOnly}
+            costMin={costMin} setCostMin={setCostMin} costMax={costMax} setCostMax={setCostMax}
+            valueMin={valueMin} setValueMin={setValueMin} valueMax={valueMax} setValueMax={setValueMax}
             onSelect={setSelectedItem} onAdd={() => setShowAddItem(true)} />
         )}
         {tab === 'van' && (
@@ -1459,6 +1482,7 @@ export default function App() {
             // body part, or brand that doesn't match this new item) can hide it
             // from the list it was just added to.
             setFilterLocations([]); setFilterCategories([]); setFilterBrands([]); setFilterNoRef(false);
+            setFilterSoldOnly(false); setCostMin(''); setCostMax(''); setValueMin(''); setValueMax('');
             setSearch(x.name);
           }}
           onDelete={() => {}} />
@@ -1528,7 +1552,7 @@ function OverviewTab({ equipment, setTab }) {
     LOCATION_BUCKETS.forEach(b => byBucket[b] = []);
     owned.forEach(e => byBucket[getLocationBucket(e)].push(e));
 
-    let csv = row(['Location', 'TDM Ref', 'Name', 'Brand', 'Category', 'Subcategory', 'Cost', 'Market Value', 'Date of Purchase', 'Months Owned', 'Status']);
+    let csv = row(['Location', 'TDM Ref', 'Name', 'Brand', 'Category', 'Subcategory', 'Cost Paid', 'Market Value', 'Date of Purchase', 'Months Owned', 'Status']);
     LOCATION_BUCKETS.forEach(bucket => {
       const items = byBucket[bucket].slice().sort((a, b) => a.name.localeCompare(b.name));
       const label = bucket === 'WBAK' ? 'WBAK (We Buy Any Kit)' : bucket;
@@ -1593,14 +1617,28 @@ function InventoryTab({
   filterCategories, setFilterCategories,
   filterBrands, setFilterBrands,
   filterNoRef, setFilterNoRef, noRefCount,
+  filterSoldOnly, setFilterSoldOnly,
+  costMin, setCostMin, costMax, setCostMax,
+  valueMin, setValueMin, valueMax, setValueMax,
   onSelect, onAdd
 }) {
   const [view, setView] = useState('grid');
 
   const clearAll = () => {
     setSearch(''); setFilterLocations([]); setFilterCategories([]);
-    setFilterBrands([]); setFilterNoRef(false);
+    setFilterBrands([]); setFilterNoRef(false); setFilterSoldOnly(false);
+    setCostMin(''); setCostMax(''); setValueMin(''); setValueMax('');
   };
+
+  // Sold-view reporting: revenue, cost, and profit across whatever's currently
+  // filtered in (so it narrows the same way the list does, e.g. by location).
+  const soldStats = useMemo(() => {
+    if (!filterSoldOnly) return null;
+    const revenue = equipment.reduce((n, e) => n + (e.salePrice || 0), 0);
+    const cost = equipment.reduce((n, e) => n + (e.cost || 0), 0);
+    const profit = revenue - cost;
+    return { count: equipment.length, revenue, cost, profit, margin: revenue > 0 ? (profit / revenue) * 100 : 0 };
+  }, [equipment, filterSoldOnly]);
 
   return (
     <div className="space-y-4">
@@ -1631,6 +1669,12 @@ function InventoryTab({
           className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition ${filterNoRef ? 'bg-red-500/15 border-red-500/40 text-red-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
           <AlertCircle size={12} /> No TDM Ref ({noRefCount})
         </button>
+        <RangeFilterDropdown label="Cost Paid" min={costMin} max={costMax} onChange={(mn, mx) => { setCostMin(mn); setCostMax(mx); }} />
+        <RangeFilterDropdown label="Market Value" min={valueMin} max={valueMax} onChange={(mn, mx) => { setValueMin(mn); setValueMax(mx); }} />
+        <button onClick={() => setFilterSoldOnly(v => !v)}
+          className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition ${filterSoldOnly ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+          <ShoppingCart size={12} /> Sold
+        </button>
         {hasActiveFilters && (
           <button onClick={clearAll} className="text-xs text-[#B8C0B1] hover:text-amber-400 flex items-center gap-1">
             <X size={11} /> Clear filters
@@ -1640,6 +1684,28 @@ function InventoryTab({
           <div className="text-xs text-[#96A093] ml-auto">{equipment.length} of {totalCount} items</div>
         )}
       </div>
+
+      {/* Sold report -- revenue, cost, profit across whatever's currently filtered in */}
+      {soldStats && soldStats.count > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl p-4">
+            <div className="text-[11px] uppercase text-[#96A093] mb-1">Items Sold</div>
+            <div className="text-xl font-semibold font-mono">{soldStats.count}</div>
+          </div>
+          <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl p-4">
+            <div className="text-[11px] uppercase text-[#96A093] mb-1">Revenue</div>
+            <div className="text-xl font-semibold font-mono">{gbp(soldStats.revenue)}</div>
+          </div>
+          <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl p-4">
+            <div className="text-[11px] uppercase text-[#96A093] mb-1">Profit</div>
+            <div className={`text-xl font-semibold font-mono ${soldStats.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{gbp(soldStats.profit)}</div>
+          </div>
+          <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl p-4">
+            <div className="text-[11px] uppercase text-[#96A093] mb-1">Margin</div>
+            <div className="text-xl font-semibold font-mono">{soldStats.margin.toFixed(1)}%</div>
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {!hasActiveFilters ? (
@@ -1657,7 +1723,53 @@ function InventoryTab({
           {equipment.map(item => <ItemCard key={item.id} item={item} onClick={() => onSelect(item)} />)}
         </div>
       ) : (
-        <ItemTable items={equipment} onSelect={onSelect} />
+        <ItemTable items={equipment} onSelect={onSelect} soldMode={filterSoldOnly} totalRevenue={soldStats?.revenue || 0} />
+      )}
+    </div>
+  );
+}
+
+function RangeFilterDropdown({ label, min, max, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [open]);
+
+  const active = min !== '' || max !== '';
+  const summary = active ? ` (${min !== '' ? gbp(Number(min)) : 'any'}–${max !== '' ? gbp(Number(max)) : 'any'})` : '';
+
+  return (
+    <div className="relative" ref={ref}>
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition ${active ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+        {label}{summary}
+        <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1.5 w-56 bg-[#3F4D3E] border border-[#3D4A3B] rounded-lg p-3 shadow-xl">
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block">
+              <div className="text-[10px] text-[#96A093] mb-1">Min (£)</div>
+              <input type="number" value={min} onChange={e => onChange(e.target.value, max)}
+                className="w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500/50" />
+            </label>
+            <label className="block">
+              <div className="text-[10px] text-[#96A093] mb-1">Max (£)</div>
+              <input type="number" value={max} onChange={e => onChange(min, e.target.value)}
+                className="w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-amber-500/50" />
+            </label>
+          </div>
+          {active && (
+            <button onClick={() => onChange('', '')} className="mt-2 text-[10px] text-[#96A093] hover:text-amber-400 flex items-center gap-1">
+              <X size={10} /> Clear
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -1739,11 +1851,19 @@ function ItemCard({ item, onClick }) {
           </div>
         )}
       </div>
+      {item.status === 'Sold' && (
+        <div className="flex items-center justify-between text-xs pt-2 mt-2 border-t border-[#3D4A3B]">
+          <span className="text-[#96A093]">Sold {gbp(item.salePrice)}</span>
+          <span className={`font-mono ${(item.salePrice || 0) - (item.cost || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {gbp((item.salePrice || 0) - (item.cost || 0))} profit
+          </span>
+        </div>
+      )}
     </button>
   );
 }
 
-function ItemTable({ items, onSelect }) {
+function ItemTable({ items, onSelect, soldMode, totalRevenue }) {
   return (
     <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -1756,16 +1876,22 @@ function ItemTable({ items, onSelect }) {
               <th className="text-left px-3 py-2.5 font-medium">Category</th>
               <th className="text-left px-3 py-2.5 font-medium">Type</th>
               <th className="text-left px-3 py-2.5 font-medium">Location</th>
-              <th className="text-left px-3 py-2.5 font-medium">→ Going to</th>
-              <th className="text-left px-3 py-2.5 font-medium">Status</th>
-              <th className="text-left px-3 py-2.5 font-medium">Stage</th>
+              {!soldMode && <th className="text-left px-3 py-2.5 font-medium">→ Going to</th>}
+              {!soldMode && <th className="text-left px-3 py-2.5 font-medium">Status</th>}
+              {!soldMode && <th className="text-left px-3 py-2.5 font-medium">Stage</th>}
               <th className="text-left px-3 py-2.5 font-medium">Owned</th>
-              <th className="text-right px-3 py-2.5 font-medium">Cost</th>
+              <th className="text-right px-3 py-2.5 font-medium">Cost Paid</th>
+              <th className="text-right px-3 py-2.5 font-medium">Market Value</th>
+              {soldMode && <th className="text-right px-3 py-2.5 font-medium">Sale Price</th>}
+              {soldMode && <th className="text-right px-3 py-2.5 font-medium">Profit</th>}
+              {soldMode && <th className="text-right px-3 py-2.5 font-medium">% of Revenue</th>}
             </tr>
           </thead>
           <tbody>
             {items.map(item => {
               const stat = STATUS_COLORS[item.status] || STATUS_COLORS['At HQ'];
+              const profit = (item.salePrice || 0) - (item.cost || 0);
+              const revShare = totalRevenue > 0 ? ((item.salePrice || 0) / totalRevenue) * 100 : 0;
               return (
                 <tr key={item.id} onClick={() => onSelect(item)}
                   className="border-b border-[#3D4A3B] last:border-b-0 hover:bg-[#5D6E5C]/40 cursor-pointer">
@@ -1781,11 +1907,15 @@ function ItemTable({ items, onSelect }) {
                   <td className="px-3 py-2 text-[#B8C0B1] text-xs">{item.category}{item.subcategory ? ` / ${item.subcategory}` : ''}</td>
                   <td className="px-3 py-2 text-[#B8C0B1] text-xs">{item.machineType || <span className="text-[#7A867A]">—</span>}</td>
                   <td className="px-3 py-2 text-[#DBE0D6]">{item.currentLocation}</td>
-                  <td className="px-3 py-2 text-[#B8C0B1]">{item.status === 'Incoming' ? item.destination : <span className="text-[#7A867A]">—</span>}</td>
-                  <td className="px-3 py-2"><span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${stat.bg} ${stat.text}`}>{item.status}</span></td>
-                  <td className="px-3 py-2">{item.refurbStage ? <RefurbStageBadge stage={item.refurbStage} /> : <span className="text-[#7A867A]">—</span>}</td>
+                  {!soldMode && <td className="px-3 py-2 text-[#B8C0B1]">{item.status === 'Incoming' ? item.destination : <span className="text-[#7A867A]">—</span>}</td>}
+                  {!soldMode && <td className="px-3 py-2"><span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${stat.bg} ${stat.text}`}>{item.status}</span></td>}
+                  {!soldMode && <td className="px-3 py-2">{item.refurbStage ? <RefurbStageBadge stage={item.refurbStage} /> : <span className="text-[#7A867A]">—</span>}</td>}
                   <td className="px-3 py-2 text-[#B8C0B1] text-xs">{timeOwned(item.orderDate) || <span className="text-[#7A867A]">—</span>}</td>
                   <td className="px-3 py-2 text-right font-mono text-[#DBE0D6]">{gbp(item.cost)}</td>
+                  <td className="px-3 py-2 text-right font-mono text-[#DBE0D6]">{gbp(item.marketValue)}</td>
+                  {soldMode && <td className="px-3 py-2 text-right font-mono text-[#DBE0D6]">{gbp(item.salePrice)}</td>}
+                  {soldMode && <td className={`px-3 py-2 text-right font-mono ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{gbp(profit)}</td>}
+                  {soldMode && <td className="px-3 py-2 text-right font-mono text-[#B8C0B1]">{revShare.toFixed(1)}%</td>}
                 </tr>
               );
             })}
@@ -2124,12 +2254,13 @@ function PurchasesTab({ equipment, onSelect }) {
 
 function ItemModal({ item, allItems, onClose, onSave, onDelete }) {
   const isNew = !item;
-  const [form, setForm] = useState(item || {
+  const [form, setForm] = useState(() => item || {
     id: '', name: '', brand: '', category: 'Chest', subcategory: '',
+    tdmRef: nextTdmRef(allItems),
     cost: 0, marketValue: 0, currentLocation: 'WBAK HQ', destination: 'Undecided',
     status: 'At HQ', refurbStage: '', refurbisher: '',
     deliveryDate: '', returnDate: '', arrivalDate: '', orderDate: '',
-    seller: '', notes: ''
+    seller: '', notes: '', salePrice: 0
   });
   const [images, setImages] = useState({});
   const [uploading, setUploading] = useState('');
@@ -2203,8 +2334,9 @@ function ItemModal({ item, allItems, onClose, onSave, onDelete }) {
             <Field type="select" label="Body Part" value={form.category} onChange={v => { update('category', v); update('subcategory', ''); }} options={CATEGORIES} />
             <Field type="select" label="Sub-category" value={form.subcategory} onChange={v => update('subcategory', v)} options={SUBCATEGORIES[form.category] || []} allowEmpty />
             <Field type="select" label="Machine Type" value={form.machineType} onChange={v => update('machineType', v)} options={MACHINE_TYPES} allowEmpty />
-            <Field label="TDM Ref" value={form.tdmRef} onChange={v => update('tdmRef', v)} />
-            <Field type="number" label="Cost (£)" value={form.cost} onChange={v => update('cost', Number(v))} />
+            <Field label="TDM Ref" value={form.tdmRef} onChange={v => update('tdmRef', v)} disabled={isNew}
+              hint={isNew ? 'Auto-assigned — next sequential TDM reference.' : undefined} />
+            <Field type="number" label="Cost Paid (£)" value={form.cost} onChange={v => update('cost', Number(v))} />
             <Field type="number" label="Market Value (£)" value={form.marketValue} onChange={v => update('marketValue', Number(v))} />
             <Field label="Seller / Source" value={form.seller} onChange={v => update('seller', v)} />
           </div>
@@ -2252,6 +2384,27 @@ function ItemModal({ item, allItems, onClose, onSave, onDelete }) {
             </div>
           )}
         </Section>
+
+        {/* Sale details -- only relevant once the item's actually sold */}
+        {form.status === 'Sold' && (
+          <Section title="Sale Details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Field type="number" label="Sale Price (£)" value={form.salePrice} onChange={v => update('salePrice', Number(v))} />
+            </div>
+            {form.salePrice > 0 && (
+              <div className="mt-3 text-xs text-[#96A093] flex flex-wrap gap-x-4 gap-y-1">
+                <div>
+                  Profit: <span className={`font-medium ${form.salePrice - (form.cost || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {gbp(form.salePrice - (form.cost || 0))}
+                  </span>
+                </div>
+                <div>
+                  Margin: <span className="text-[#EAEEE5] font-medium">{(((form.salePrice - (form.cost || 0)) / form.salePrice) * 100).toFixed(1)}%</span> of sale price
+                </div>
+              </div>
+            )}
+          </Section>
+        )}
 
         {/* Refurb workflow */}
         {form.status === 'In Refurb' && (
@@ -2559,20 +2712,23 @@ function Section({ title, children }) {
   );
 }
 
-function Field({ type = 'text', label, value, onChange, options, allowEmpty }) {
+function Field({ type = 'text', label, value, onChange, options, allowEmpty, disabled, hint }) {
   return (
-    <label className="block">
-      <div className="text-[11px] text-[#96A093] mb-1">{label}</div>
-      {type === 'select' ? (
-        <select value={value || ''} onChange={e => onChange(e.target.value)}
-          className="w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50">
-          {allowEmpty && <option value="">—</option>}
-          {options.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-      ) : (
-        <input type={type} value={value || ''} onChange={e => onChange(e.target.value)}
-          className="w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50" />
-      )}
-    </label>
+    <div className="block">
+      <label className="block">
+        <div className="text-[11px] text-[#96A093] mb-1">{label}</div>
+        {type === 'select' ? (
+          <select value={value || ''} onChange={e => onChange(e.target.value)} disabled={disabled}
+            className={`w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
+            {allowEmpty && <option value="">—</option>}
+            {options.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        ) : (
+          <input type={type} value={value || ''} onChange={e => onChange(e.target.value)} disabled={disabled}
+            className={`w-full bg-[#4C5C4A] border border-[#3D4A3B] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500/50 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`} />
+        )}
+      </label>
+      {hint && <div className="text-[10px] text-[#7A867A] mt-1">{hint}</div>}
+    </div>
   );
 }
