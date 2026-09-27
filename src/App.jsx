@@ -4,7 +4,7 @@ import {
   Search, Filter, Plus, X, Edit3, Trash2, Save, Copy, Upload, Download,
   ChevronDown, ChevronRight, ArrowRight, Package, MapPin, Building2,
   Calendar, Camera, Image as ImageIcon, Check, AlertCircle, Clock,
-  RefreshCw, Sparkles, TrendingUp, PackageCheck, PackageOpen, Settings
+  RefreshCw, Sparkles, TrendingUp, PackageCheck, PackageOpen, Settings, Inbox, PackagePlus
 } from 'lucide-react';
 
 /* ============================================================
@@ -87,6 +87,7 @@ const K = {
   EQUIP: 'equip:v1',
   SALES: 'sales:v1',
   VANRUNS: 'vanruns:v2',
+  INCOMING: 'incoming:v1',
   IMG: (id) => `img:v1:${id}`,
   SEEDED: 'seeded:v1',
   MIGRATED_REFURB_V1: 'migrated:refurb-v1',
@@ -1064,11 +1065,13 @@ export default function App() {
   const [equipment, setEquipment] = useState([]);
   const [sales, setSales] = useState([]);
   const [vanRuns, setVanRuns] = useState([]);
+  const [incoming, setIncoming] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedRun, setSelectedRun] = useState(null);
   const [selectedSale, setSelectedSale] = useState(null);
   const [showAddItem, setShowAddItem] = useState(false);
+  const [addItemPrefill, setAddItemPrefill] = useState(null);
   const [showAddSale, setShowAddSale] = useState(false);
   const [showAddRun, setShowAddRun] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -1095,16 +1098,18 @@ export default function App() {
     const unsubs = [
       window.storage.subscribe(K.EQUIP, setEquipment),
       window.storage.subscribe(K.SALES, setSales),
-      window.storage.subscribe(K.VANRUNS, setVanRuns)
+      window.storage.subscribe(K.VANRUNS, setVanRuns),
+      window.storage.subscribe(K.INCOMING, setIncoming)
     ];
     return () => unsubs.forEach(fn => fn());
   }, []);
 
   async function load() {
-    const [e, s, v, seeded, migratedRefurb, migratedUnityRoster, migratedTdmRef, migratedDuplicates, migratedDuplicatesV2, migratedOrderDates, migratedOrderDatesV2] = await Promise.all([
+    const [e, s, v, inc, seeded, migratedRefurb, migratedUnityRoster, migratedTdmRef, migratedDuplicates, migratedDuplicatesV2, migratedOrderDates, migratedOrderDatesV2] = await Promise.all([
       loadKey(K.EQUIP, []),
       loadKey(K.SALES, []),
       loadKey(K.VANRUNS, []),
+      loadKey(K.INCOMING, []),
       loadKey(K.SEEDED, false),
       loadKey(K.MIGRATED_REFURB_V1, false),
       loadKey(K.MIGRATED_UNITY_ROSTER_V1, false),
@@ -1244,7 +1249,7 @@ export default function App() {
       }
       await saveKey(K.MIGRATED_ORDER_DATES_V2, true);
     }
-    setEquipment(eq); setSales(sl); setVanRuns(vr); setLoaded(true);
+    setEquipment(eq); setSales(sl); setVanRuns(vr); setIncoming(inc); setLoaded(true);
   }
 
   async function syncSeed() {
@@ -1320,8 +1325,34 @@ export default function App() {
     else { setVanRuns(prev); showToast("Couldn't delete van run — check your connection and try again", true); }
   }
 
+  // Incoming Equipment is a plain editable grid (like the spreadsheet it replaces),
+  // so it saves the whole rows array at once rather than one record at a time.
+  async function saveIncoming(next) {
+    const prev = incoming;
+    setIncoming(next);
+    const ok = await saveKey(K.INCOMING, next);
+    if (!ok) { setIncoming(prev); showToast("Couldn't save — check your connection and try again", true); }
+    return ok;
+  }
+  function addIncomingRow() {
+    const usedRefs = [...equipment, ...incoming];
+    const row = {
+      id: mkId(`incoming-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+      orderNumber: '', tdmRef: nextTdmRef(usedRefs), item: '', brand: '', cost: 0,
+      seller: '', orderDate: '', expectedArrival: '', destination: 'Undecided',
+      status: 'Ordered', notes: '', addedAt: Date.now()
+    };
+    saveIncoming([...incoming, row]);
+  }
+  function updateIncomingRow(id, patch) {
+    saveIncoming(incoming.map(r => r.id === id ? { ...r, ...patch, updatedAt: Date.now() } : r));
+  }
+  function deleteIncomingRow(id) {
+    saveIncoming(incoming.filter(r => r.id !== id));
+  }
+
   async function exportAll() {
-    const dump = { version: 1, exportedAt: new Date().toISOString(), equipment, sales, vanRuns };
+    const dump = { version: 1, exportedAt: new Date().toISOString(), equipment, sales, vanRuns, incoming };
     const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1337,6 +1368,7 @@ export default function App() {
       if (data.equipment) { setEquipment(data.equipment); await saveKey(K.EQUIP, data.equipment); }
       if (data.sales) { setSales(data.sales); await saveKey(K.SALES, data.sales); }
       if (data.vanRuns) { setVanRuns(data.vanRuns); await saveKey(K.VANRUNS, data.vanRuns); }
+      if (data.incoming) { setIncoming(data.incoming); await saveKey(K.INCOMING, data.incoming); }
       showToast('Imported');
     } catch (e) { showToast('Import failed — invalid JSON'); }
   }
@@ -1382,6 +1414,7 @@ export default function App() {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'incoming', label: 'Incoming', icon: Inbox },
     { id: 'inventory', label: 'Inventory', icon: Boxes },
     { id: 'van', label: 'Van Schedule', icon: Truck },
     { id: 'sales', label: 'Sales', icon: ShoppingCart },
@@ -1431,6 +1464,19 @@ export default function App() {
         {tab === 'overview' && (
           <OverviewTab equipment={equipment} setTab={setTab} />
         )}
+        {tab === 'incoming' && (
+          <IncomingTab rows={incoming} onAddRow={addIncomingRow}
+            onUpdateRow={updateIncomingRow} onDeleteRow={deleteIncomingRow}
+            onPromote={(row) => {
+              setAddItemPrefill({
+                name: row.item || '', brand: row.brand || '', cost: row.cost || 0,
+                tdmRef: row.tdmRef || '', seller: row.seller || '',
+                orderDate: row.orderDate || '', currentLocation: 'WBAK HQ',
+                destination: row.destination || 'Undecided', status: 'Incoming', notes: row.notes || ''
+              });
+              setShowAddItem(true);
+            }} />
+        )}
         {tab === 'inventory' && (
           <InventoryTab
             equipment={filteredEquipment} totalCount={equipment.length}
@@ -1473,11 +1519,12 @@ export default function App() {
           onSave={upsertSale} onDelete={deleteSale} />
       )}
       {showAddItem && (
-        <ItemModal item={null} allItems={equipment}
-          onClose={() => setShowAddItem(false)}
+        <ItemModal item={null} allItems={equipment} extraRefItems={incoming} prefill={addItemPrefill || {}}
+          onClose={() => { setShowAddItem(false); setAddItemPrefill(null); }}
           onSave={(x) => {
             upsertItem(x);
             setShowAddItem(false);
+            setAddItemPrefill(null);
             // Otherwise whatever filters were active before adding (a location,
             // body part, or brand that doesn't match this new item) can hide it
             // from the list it was just added to.
@@ -1502,7 +1549,7 @@ export default function App() {
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)}
           onExport={exportAll} onImport={importAll} onSync={syncSeed}
-          counts={{ equipment: equipment.length, sales: sales.length, vanRuns: vanRuns.length }} />
+          counts={{ equipment: equipment.length, incoming: incoming.length, sales: sales.length, vanRuns: vanRuns.length }} />
       )}
       {toast && (
         <div className={`fixed bottom-6 right-6 px-4 py-2.5 rounded-lg text-sm shadow-xl z-50 flex items-center gap-2 border ${toast.isError ? 'bg-red-950/90 border-red-500/50 text-red-100' : 'bg-[#3F4D3E] border-[#8FA087]'}`}>
@@ -2038,6 +2085,160 @@ function ItemJourney({ item }) {
   );
 }
 
+// ================ INCOMING EQUIPMENT ================
+// A lightweight, spreadsheet-style log for orders as they're placed -- exactly
+// what the old Google Sheet did, before an item is worth the full Inventory
+// record (category, market value, refurb tracking, etc). "Add to Inventory"
+// carries a row's details into a new Inventory item without deleting the row,
+// so this stays the permanent order log while Inventory tracks what happens next.
+
+const INCOMING_STATUSES = ['Ordered', 'Arrived', 'Cancelled', 'Refunded'];
+const INCOMING_STATUS_COLORS = {
+  'Ordered':   { bg: 'bg-blue-500/25',    text: 'text-blue-200' },
+  'Arrived':   { bg: 'bg-emerald-500/25', text: 'text-emerald-100' },
+  'Cancelled': { bg: 'bg-zinc-500/25',    text: 'text-zinc-200' },
+  'Refunded':  { bg: 'bg-red-500/25',     text: 'text-red-200' }
+};
+
+function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onPromote }) {
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows
+      .filter(r => !statusFilter || r.status === statusFilter)
+      .filter(r => !q || `${r.item} ${r.brand} ${r.seller} ${r.notes} ${r.tdmRef} ${r.orderNumber}`.toLowerCase().includes(q))
+      .slice()
+      .sort((a, b) => (b.orderDate || '').localeCompare(a.orderDate || '') || (b.addedAt || 0) - (a.addedAt || 0));
+  }, [rows, search, statusFilter]);
+
+  const committedSpend = useMemo(() =>
+    rows.filter(r => r.status !== 'Cancelled' && r.status !== 'Refunded').reduce((n, r) => n + (Number(r.cost) || 0), 0),
+  [rows]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-lg font-semibold">Incoming Equipment</div>
+          <div className="text-xs text-[#96A093] mt-0.5">{rows.length} order{rows.length !== 1 ? 's' : ''} logged · {gbp(committedSpend)} committed</div>
+        </div>
+        <button onClick={onAddRow} className="bg-amber-500 hover:bg-amber-400 text-[#2A362A] text-sm font-medium px-3 py-2.5 rounded-lg flex items-center gap-1.5">
+          <Plus size={14} /> Add Row
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#96A093]" />
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search by item, brand, seller, ref, notes…"
+            className="w-full bg-[#3F4D3E] border border-[#3D4A3B] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-[#7A867A] focus:border-amber-500/50 focus:outline-none" />
+        </div>
+        <button onClick={() => setStatusFilter('')}
+          className={`text-xs px-3 py-2 rounded-lg border transition ${!statusFilter ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+          All
+        </button>
+        {INCOMING_STATUSES.map(s => (
+          <button key={s} onClick={() => setStatusFilter(v => v === s ? '' : s)}
+            className={`text-xs px-3 py-2 rounded-lg border transition ${statusFilter === s ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-[#3F4D3E] border-[#3D4A3B] text-[#B8C0B1] hover:border-[#8FA087] hover:text-[#EAEEE5]'}`}>
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="text-center py-20 text-[#96A093]">
+          <Inbox size={32} className="mx-auto mb-2 opacity-40" />
+          <div className="text-sm">No incoming orders logged yet</div>
+          <button onClick={onAddRow} className="mt-3 text-xs text-amber-400 hover:text-amber-300">+ Add the first row</button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-[#96A093]">
+          <Package size={32} className="mx-auto mb-2 opacity-40" />
+          <div className="text-sm">No rows match those filters</div>
+        </div>
+      ) : (
+        <div className="bg-[#3F4D3E] border border-[#3D4A3B] rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#4C5C4A] border-b border-[#3D4A3B] text-xs uppercase tracking-wider text-[#96A093]">
+                <tr>
+                  <th className="text-left px-2 py-2.5 font-medium">Order #</th>
+                  <th className="text-left px-2 py-2.5 font-medium">TDM Ref</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[180px]">Item</th>
+                  <th className="text-left px-2 py-2.5 font-medium">Brand</th>
+                  <th className="text-right px-2 py-2.5 font-medium">Cost (£)</th>
+                  <th className="text-left px-2 py-2.5 font-medium">Seller</th>
+                  <th className="text-left px-2 py-2.5 font-medium">Order Date</th>
+                  <th className="text-left px-2 py-2.5 font-medium">Expected</th>
+                  <th className="text-left px-2 py-2.5 font-medium">Destination</th>
+                  <th className="text-left px-2 py-2.5 font-medium">Status</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[160px]">Notes</th>
+                  <th className="px-2 py-2.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(row => (
+                  <IncomingRow key={row.id} row={row} onUpdate={onUpdateRow} onDelete={onDeleteRow} onPromote={onPromote} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IncomingRow({ row, onUpdate, onDelete, onPromote }) {
+  // Local copy so typing feels instant; commits to shared storage on blur
+  // (or immediately for selects/dates, which don't fire per keystroke).
+  const [local, setLocal] = useState(row);
+  useEffect(() => { setLocal(row); }, [row]);
+
+  const set = (k, v) => setLocal(l => ({ ...l, [k]: v }));
+  const commit = (k, v) => { if (v !== row[k]) onUpdate(row.id, { [k]: v }); };
+  const cellClass = "w-full bg-transparent px-2 py-2 text-sm focus:outline-none focus:bg-[#4C5C4A] rounded";
+  const stat = INCOMING_STATUS_COLORS[local.status] || INCOMING_STATUS_COLORS['Ordered'];
+
+  return (
+    <tr className="border-b border-[#3D4A3B] last:border-b-0 hover:bg-[#5D6E5C]/20">
+      <td className="p-0"><input value={local.orderNumber} onChange={e => set('orderNumber', e.target.value)} onBlur={e => commit('orderNumber', e.target.value)} className={`${cellClass} w-16`} /></td>
+      <td className="p-0"><input value={local.tdmRef} onChange={e => set('tdmRef', e.target.value)} onBlur={e => commit('tdmRef', e.target.value)} className={`${cellClass} w-16 font-mono`} /></td>
+      <td className="p-0"><input value={local.item} onChange={e => set('item', e.target.value)} onBlur={e => commit('item', e.target.value)} className={`${cellClass} text-[#F5F5F0]`} /></td>
+      <td className="p-0"><input value={local.brand} onChange={e => set('brand', e.target.value)} onBlur={e => commit('brand', e.target.value)} className={`${cellClass} w-28`} /></td>
+      <td className="p-0"><input type="number" value={local.cost} onChange={e => set('cost', e.target.value)} onBlur={e => commit('cost', Number(local.cost) || 0)} className={`${cellClass} w-20 text-right font-mono`} /></td>
+      <td className="p-0"><input value={local.seller} onChange={e => set('seller', e.target.value)} onBlur={e => commit('seller', e.target.value)} className={`${cellClass} w-28`} /></td>
+      <td className="p-0"><input type="date" value={local.orderDate} onChange={e => { set('orderDate', e.target.value); commit('orderDate', e.target.value); }} className={`${cellClass} w-36 text-xs`} /></td>
+      <td className="p-0"><input type="date" value={local.expectedArrival} onChange={e => { set('expectedArrival', e.target.value); commit('expectedArrival', e.target.value); }} className={`${cellClass} w-36 text-xs`} /></td>
+      <td className="p-0">
+        <select value={local.destination} onChange={e => { set('destination', e.target.value); commit('destination', e.target.value); }} className={`${cellClass} w-32 text-xs`}>
+          {DESTINATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      </td>
+      <td className="p-0">
+        <select value={local.status} onChange={e => { set('status', e.target.value); commit('status', e.target.value); }}
+          className={`text-[10px] uppercase px-2 py-1 rounded-full ${stat.bg} ${stat.text} border-none focus:outline-none`}>
+          {INCOMING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </td>
+      <td className="p-0"><input value={local.notes} onChange={e => set('notes', e.target.value)} onBlur={e => commit('notes', e.target.value)} className={`${cellClass} text-xs text-[#B8C0B1]`} /></td>
+      <td className="px-2 py-2 whitespace-nowrap">
+        <div className="flex items-center gap-2">
+          <button onClick={() => onPromote(row)} title="Add to Inventory" className="text-[#96A093] hover:text-amber-400">
+            <PackagePlus size={14} />
+          </button>
+          <button onClick={() => { if (confirm('Delete this row?')) onDelete(row.id); }} title="Delete row" className="text-[#96A093] hover:text-red-400">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 // ================ VAN SCHEDULE ================
 
 function VanTab({ vanRuns, onSelect, onAdd }) {
@@ -2252,15 +2453,16 @@ function PurchasesTab({ equipment, onSelect }) {
 
 // ================ ITEM MODAL ================
 
-function ItemModal({ item, allItems, onClose, onSave, onDelete }) {
+function ItemModal({ item, allItems, extraRefItems = [], prefill = {}, onClose, onSave, onDelete }) {
   const isNew = !item;
   const [form, setForm] = useState(() => item || {
     id: '', name: '', brand: '', category: 'Chest', subcategory: '',
-    tdmRef: nextTdmRef(allItems),
+    tdmRef: nextTdmRef([...allItems, ...extraRefItems]),
     cost: 0, marketValue: 0, currentLocation: 'WBAK HQ', destination: 'Undecided',
     status: 'At HQ', refurbStage: '', refurbisher: '',
     deliveryDate: '', returnDate: '', arrivalDate: '', orderDate: '',
-    seller: '', notes: '', salePrice: 0
+    seller: '', notes: '', salePrice: 0,
+    ...prefill
   });
   const [images, setImages] = useState({});
   const [uploading, setUploading] = useState('');
@@ -2635,7 +2837,7 @@ function SettingsModal({ onClose, onExport, onImport, onSync, counts }) {
       <div className="space-y-6">
         <Section title="Storage">
           <div className="text-sm text-[#B8C0B1] space-y-1 mb-3">
-            <div>{counts.equipment} equipment items · {counts.sales} sales · {counts.vanRuns} van runs</div>
+            <div>{counts.equipment} equipment items · {counts.incoming} incoming orders · {counts.sales} sales · {counts.vanRuns} van runs</div>
             <div className="text-xs text-[#96A093]">Data stored locally in this browser only (personal scope). No one else can see it.</div>
           </div>
         </Section>
