@@ -2581,6 +2581,14 @@ function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onUpdateOrderGr
                     onUpdate={onUpdateRow} onDelete={onDeleteRow}
                     onUpdateOrderGroup={onUpdateOrderGroup} onPromote={onPromote} />
                 )))}
+                <tr>
+                  <td colSpan={14} className="p-0">
+                    <button onClick={onAddRow}
+                      className="w-full flex items-center gap-1.5 px-3 py-2.5 text-xs text-[#96A093] hover:text-amber-300 hover:bg-[#5D6E5C]/20 transition">
+                      <Plus size={13} /> Add Row
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
