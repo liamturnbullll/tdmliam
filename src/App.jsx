@@ -1674,9 +1674,13 @@ export default function App() {
   }
   function addIncomingRow() {
     const usedRefs = [...equipment, ...incoming];
+    // Next order number, so a fresh row is its own group and sorts to the bottom
+    // of the list -- like typing into the next blank row of a real spreadsheet,
+    // rather than landing wherever a blank order number happens to sort.
+    const nextOrder = incoming.reduce((max, r) => Math.max(max, Number(r.orderNumber) || 0), 0) + 1;
     const row = {
       id: mkId(`incoming-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
-      orderNumber: '', seller: '', tdmRef: nextTdmRef(usedRefs), item: '', cost: 0,
+      orderNumber: String(nextOrder), seller: '', tdmRef: nextTdmRef(usedRefs), item: '', cost: 0,
       marketValue: 0, orderDate: '', expectedArrival: '', arrived: false,
       destination: 'Undecided', totalPaid: '', notes: '', addedAt: Date.now()
     };
@@ -1684,6 +1688,11 @@ export default function App() {
   }
   function updateIncomingRow(id, patch) {
     saveIncoming(incoming.map(r => r.id === id ? { ...r, ...patch, updatedAt: Date.now() } : r));
+  }
+  // Order # is a merged cell shown once per order group -- editing it has to move
+  // every row in that group together, or the merge would visibly split in two.
+  function updateIncomingOrderGroup(rowIds, newOrderNumber) {
+    saveIncoming(incoming.map(r => rowIds.includes(r.id) ? { ...r, orderNumber: newOrderNumber, updatedAt: Date.now() } : r));
   }
   function deleteIncomingRow(id) {
     saveIncoming(incoming.filter(r => r.id !== id));
@@ -1805,6 +1814,7 @@ export default function App() {
         {tab === 'incoming' && (
           <IncomingTab rows={incoming} onAddRow={addIncomingRow}
             onUpdateRow={updateIncomingRow} onDeleteRow={deleteIncomingRow}
+            onUpdateOrderGroup={updateIncomingOrderGroup}
             onPromote={(row) => {
               setAddItemPrefill({
                 name: row.item || '', cost: row.cost || 0, marketValue: row.marketValue || 0,
@@ -2460,7 +2470,22 @@ function CurrencyCell({ value, onChange, onCommit, className, placeholder }) {
   );
 }
 
-function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onPromote }) {
+// Grows to fit its content and wraps rather than clipping -- used for the two
+// free-text columns (Equipment, Notes) that can run long, so nothing is ever
+// hidden behind a fixed-height single-line input.
+function AutoTextarea({ value, onChange, onCommit, className, placeholder }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) { ref.current.style.height = 'auto'; ref.current.style.height = ref.current.scrollHeight + 'px'; }
+  }, [value]);
+  return (
+    <textarea ref={ref} value={value} onChange={e => onChange(e.target.value)} onBlur={e => onCommit(e.target.value)}
+      placeholder={placeholder} rows={1}
+      className={`${className} resize-none overflow-hidden leading-snug`} />
+  );
+}
+
+function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onUpdateOrderGroup, onPromote }) {
   const [search, setSearch] = useState('');
   const [arrivedFilter, setArrivedFilter] = useState('');
 
@@ -2472,6 +2497,18 @@ function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onPromote }) {
       .slice()
       .sort((a, b) => (Number(a.orderNumber) || 0) - (Number(b.orderNumber) || 0) || (Number(a.tdmRef) || 0) - (Number(b.tdmRef) || 0));
   }, [rows, search, arrivedFilter]);
+
+  // Group consecutive same-order rows so Order/Total Paid/Notes can render as one
+  // merged cell spanning the group, matching the sheet's own merged-cell blocks.
+  const groups = useMemo(() => {
+    const gs = [];
+    filtered.forEach(row => {
+      const last = gs[gs.length - 1];
+      if (last && last.orderNumber === row.orderNumber) last.rows.push(row);
+      else gs.push({ orderNumber: row.orderNumber, rows: [row] });
+    });
+    return gs;
+  }, [filtered]);
 
   const totalPaid = useMemo(() => rows.reduce((n, r) => n + (Number(r.cost) || 0), 0), [rows]);
   const orderCount = useMemo(() => new Set(rows.map(r => r.orderNumber).filter(Boolean)).size, [rows]);
@@ -2520,26 +2557,30 @@ function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onPromote }) {
             <table className="w-full text-sm">
               <thead className="bg-[#4C5C4A] border-b border-[#3D4A3B] text-xs uppercase tracking-wider text-[#96A093]">
                 <tr>
-                  <th className="text-left px-2 py-2.5 font-medium">Order</th>
-                  <th className="text-left px-2 py-2.5 font-medium w-28">Seller</th>
+                  <th className="text-left px-2 py-2.5 font-medium w-16">Order</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[140px]">Seller</th>
                   <th className="text-left px-2 py-2.5 font-medium w-16">Ref</th>
-                  <th className="text-left px-2 py-2.5 font-medium min-w-[200px]">Equipment</th>
-                  <th className="text-right px-2 py-2.5 font-medium min-w-[125px]">What We Paid</th>
-                  <th className="text-right px-2 py-2.5 font-medium min-w-[125px]">Market Value</th>
-                  <th className="text-right px-2 py-2.5 font-medium min-w-[125px]">Expected Profit</th>
-                  <th className="text-left px-2 py-2.5 font-medium w-32">Order Date</th>
-                  <th className="text-left px-2 py-2.5 font-medium w-32">Expected Arrival</th>
-                  <th className="text-center px-2 py-2.5 font-medium">Arrived</th>
-                  <th className="text-left px-2 py-2.5 font-medium w-32">Destination</th>
-                  <th className="text-right px-2 py-2.5 font-medium min-w-[125px]">Total Paid</th>
-                  <th className="text-left px-2 py-2.5 font-medium min-w-[180px]">Notes</th>
-                  <th className="px-2 py-2.5"></th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[280px]">Equipment</th>
+                  <th className="text-right px-2 py-2.5 font-medium min-w-[130px]">What We Paid</th>
+                  <th className="text-right px-2 py-2.5 font-medium min-w-[130px]">Market Value</th>
+                  <th className="text-right px-2 py-2.5 font-medium min-w-[130px]">Expected Profit</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[150px]">Order Date</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[150px]">Expected Arrival</th>
+                  <th className="text-center px-2 py-2.5 font-medium w-20">Arrived</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[160px]">Destination</th>
+                  <th className="text-right px-2 py-2.5 font-medium min-w-[130px]">Total Paid</th>
+                  <th className="text-left px-2 py-2.5 font-medium min-w-[280px]">Notes</th>
+                  <th className="px-2 py-2.5 w-16"></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(row => (
-                  <IncomingRow key={row.id} row={row} onUpdate={onUpdateRow} onDelete={onDeleteRow} onPromote={onPromote} />
-                ))}
+                {groups.map((group, gi) => group.rows.map((row, ri) => (
+                  <IncomingRow key={row.id} row={row} zebra={gi % 2 === 1}
+                    isFirstInGroup={ri === 0} groupSize={group.rows.length}
+                    groupRowIds={group.rows.map(r => r.id)}
+                    onUpdate={onUpdateRow} onDelete={onDeleteRow}
+                    onUpdateOrderGroup={onUpdateOrderGroup} onPromote={onPromote} />
+                )))}
               </tbody>
             </table>
           </div>
@@ -2549,7 +2590,7 @@ function IncomingTab({ rows, onAddRow, onUpdateRow, onDeleteRow, onPromote }) {
   );
 }
 
-function IncomingRow({ row, onUpdate, onDelete, onPromote }) {
+function IncomingRow({ row, zebra, isFirstInGroup, groupSize, groupRowIds, onUpdate, onDelete, onUpdateOrderGroup, onPromote }) {
   // Local copy so typing feels instant; commits to shared storage on blur
   // (or immediately for selects/checkboxes/dates, which don't fire per keystroke).
   const [local, setLocal] = useState(row);
@@ -2558,32 +2599,47 @@ function IncomingRow({ row, onUpdate, onDelete, onPromote }) {
   const set = (k, v) => setLocal(l => ({ ...l, [k]: v }));
   const commit = (k, v) => { if (v !== row[k]) onUpdate(row.id, { [k]: v }); };
   const cellClass = "w-full bg-transparent px-2 py-2 text-sm focus:outline-none focus:bg-[#4C5C4A] rounded";
+  const mergedCellClass = "w-full h-full bg-transparent px-2 py-2 text-sm focus:outline-none focus:bg-[#4C5C4A] rounded";
   const expectedProfit = (Number(local.marketValue) || 0) - (Number(local.cost) || 0);
 
   return (
-    <tr className="border-b border-[#3D4A3B] last:border-b-0 hover:bg-[#5D6E5C]/20">
-      <td className="p-0"><input value={local.orderNumber} onChange={e => set('orderNumber', e.target.value)} onBlur={e => commit('orderNumber', e.target.value)} className={`${cellClass} w-14 font-medium`} /></td>
-      <td className="p-0"><input value={local.seller} onChange={e => set('seller', e.target.value)} onBlur={e => commit('seller', e.target.value)} className={`${cellClass} w-28`} /></td>
+    <tr className={`border-b border-[#3D4A3B] last:border-b-0 hover:bg-[#5D6E5C]/20 ${zebra ? 'bg-black/10' : ''}`}>
+      {isFirstInGroup && (
+        <td className="p-0 align-middle" rowSpan={groupSize}>
+          <input value={local.orderNumber} onChange={e => set('orderNumber', e.target.value)}
+            onBlur={e => { if (e.target.value !== row.orderNumber) onUpdateOrderGroup(groupRowIds, e.target.value); }}
+            className={`${mergedCellClass} font-medium`} />
+        </td>
+      )}
+      <td className="p-0"><input value={local.seller} onChange={e => set('seller', e.target.value)} onBlur={e => commit('seller', e.target.value)} className={`${cellClass} min-w-[140px]`} /></td>
       <td className="p-0"><input value={local.tdmRef} onChange={e => set('tdmRef', e.target.value)} onBlur={e => commit('tdmRef', e.target.value)} className={`${cellClass} w-16 font-mono`} /></td>
-      <td className="p-0"><input value={local.item} onChange={e => set('item', e.target.value)} onBlur={e => commit('item', e.target.value)} className={`${cellClass} text-[#F5F5F0]`} /></td>
-      <td className="p-0"><CurrencyCell value={local.cost} onChange={v => set('cost', v)} onCommit={v => commit('cost', Number(v) || 0)} className={`${cellClass} min-w-[120px] text-right font-mono`} /></td>
-      <td className="p-0"><CurrencyCell value={local.marketValue} onChange={v => set('marketValue', v)} onCommit={v => commit('marketValue', Number(v) || 0)} className={`${cellClass} min-w-[120px] text-right font-mono`} /></td>
-      <td className={`px-2 py-2 text-right font-mono min-w-[110px] ${expectedProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+      <td className="p-0"><AutoTextarea value={local.item} onChange={v => set('item', v)} onCommit={v => commit('item', v)} className={`${cellClass} text-[#F5F5F0] min-w-[280px]`} /></td>
+      <td className="p-0"><CurrencyCell value={local.cost} onChange={v => set('cost', v)} onCommit={v => commit('cost', Number(v) || 0)} className={`${cellClass} min-w-[130px] text-right font-mono`} /></td>
+      <td className="p-0"><CurrencyCell value={local.marketValue} onChange={v => set('marketValue', v)} onCommit={v => commit('marketValue', Number(v) || 0)} className={`${cellClass} min-w-[130px] text-right font-mono`} /></td>
+      <td className={`px-2 py-2 text-right font-mono min-w-[130px] ${expectedProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
         {local.marketValue ? gbp2(expectedProfit) : <span className="text-[#7A867A]">—</span>}
       </td>
-      <td className="p-0"><input type="date" value={local.orderDate} onChange={e => { set('orderDate', e.target.value); commit('orderDate', e.target.value); }} className={`${cellClass} w-32 text-xs`} /></td>
-      <td className="p-0"><input value={local.expectedArrival} onChange={e => set('expectedArrival', e.target.value)} onBlur={e => commit('expectedArrival', e.target.value)} placeholder="e.g. Mid December" className={`${cellClass} w-32 text-xs`} /></td>
+      <td className="p-0"><input type="date" value={local.orderDate} onChange={e => { set('orderDate', e.target.value); commit('orderDate', e.target.value); }} className={`${cellClass} min-w-[150px] text-xs`} /></td>
+      <td className="p-0"><input value={local.expectedArrival} onChange={e => set('expectedArrival', e.target.value)} onBlur={e => commit('expectedArrival', e.target.value)} placeholder="e.g. Mid December" className={`${cellClass} min-w-[150px] text-xs`} /></td>
       <td className="px-2 py-2 text-center">
         <input type="checkbox" checked={!!local.arrived} onChange={e => { set('arrived', e.target.checked); commit('arrived', e.target.checked); }}
           className="w-4 h-4 accent-emerald-500 cursor-pointer" />
       </td>
       <td className="p-0">
-        <select value={local.destination} onChange={e => { set('destination', e.target.value); commit('destination', e.target.value); }} className={`${cellClass} w-32 text-xs`}>
+        <select value={local.destination} onChange={e => { set('destination', e.target.value); commit('destination', e.target.value); }} className={`${cellClass} min-w-[160px] text-xs`}>
           {DESTINATIONS.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       </td>
-      <td className="p-0"><CurrencyCell value={local.totalPaid} onChange={v => set('totalPaid', v)} onCommit={v => commit('totalPaid', v === '' ? '' : Number(v) || 0)} placeholder="—" className={`${cellClass} min-w-[120px] text-right font-mono`} /></td>
-      <td className="p-0"><input value={local.notes} onChange={e => set('notes', e.target.value)} onBlur={e => commit('notes', e.target.value)} className={`${cellClass} text-xs text-[#B8C0B1]`} /></td>
+      {isFirstInGroup && (
+        <td className="p-0 align-middle" rowSpan={groupSize}>
+          <CurrencyCell value={local.totalPaid} onChange={v => set('totalPaid', v)} onCommit={v => commit('totalPaid', v === '' ? '' : Number(v) || 0)} placeholder="—" className={`${mergedCellClass} text-right font-mono`} />
+        </td>
+      )}
+      {isFirstInGroup && (
+        <td className="p-0 align-middle" rowSpan={groupSize}>
+          <AutoTextarea value={local.notes} onChange={v => set('notes', v)} onCommit={v => commit('notes', v)} className={`${mergedCellClass} text-xs text-[#B8C0B1] min-w-[280px]`} />
+        </td>
+      )}
       <td className="px-2 py-2 whitespace-nowrap">
         <div className="flex items-center gap-2">
           <button onClick={() => onPromote(row)} title="Add to Inventory" className="text-[#96A093] hover:text-amber-400">
