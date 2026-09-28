@@ -1695,7 +1695,18 @@ export default function App() {
     saveIncoming(incoming.map(r => rowIds.includes(r.id) ? { ...r, orderNumber: newOrderNumber, updatedAt: Date.now() } : r));
   }
   function deleteIncomingRow(id) {
-    saveIncoming(incoming.filter(r => r.id !== id));
+    const row = incoming.find(r => r.id === id);
+    let next = incoming.filter(r => r.id !== id);
+    if (row && (row.totalPaid !== '' || row.notes)) {
+      const siblings = next.filter(r => r.orderNumber === row.orderNumber);
+      if (siblings.length > 0) {
+        const newFirst = siblings.reduce((a, b) => (Number(a.tdmRef) || 0) <= (Number(b.tdmRef) || 0) ? a : b);
+        if (newFirst.totalPaid === '' && !newFirst.notes) {
+          next = next.map(r => r.id === newFirst.id ? { ...r, totalPaid: row.totalPaid, notes: row.notes } : r);
+        }
+      }
+    }
+    saveIncoming(next);
   }
 
   async function exportAll() {
